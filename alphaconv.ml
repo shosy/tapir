@@ -19,7 +19,8 @@ let rec alpha_val map = function
     | Var(x) -> Var(alpha_var map x)
     | Bool(b) -> Bool(b)
     | Int(i) -> Int(i)
-    | Op(opkind, vs) -> Op(opkind, List.map (alpha_val map) vs)
+    | Op(op,vs) -> Op(op, List.map (alpha_val map) vs)
+    | Unknown(p,vs) -> Unknown(p, List.map (alpha_val map) vs)
 
 let rec alpha_proc map = function
     | Nil -> Nil

@@ -1,5 +1,5 @@
 (** operators **)
-type op = NOT | AND | OR | EQ | LT | GT | LE | GE | MINUS | ADD | SUB | MUL | DIV
+type op = NOT | AND | OR | IMPLY | EQ | LT | GT | LE | GE | MINUS | ADD | SUB | MUL | DIV
 
 (** syntax of values **)
 type value =
@@ -7,6 +7,7 @@ type value =
     | Bool of bool
     | Int of int
     | Op of op * value list
+    | Unknown of string * value list
 
 (** syntax of processes **)
 (** the parameter 'a denotes the type of type expressions for bound variables **)
@@ -25,5 +26,5 @@ val pp_print_proc : ?pp_print_t:(Format.formatter -> 'a -> unit) -> Format.forma
 
 val print_proc : ?pp_print_t:(Format.formatter -> 'a -> unit) -> out_channel -> 'a proc -> unit
 
-val subst_val : (string, string) M.t -> value -> value
-val subst_proc : (string, string) M.t -> 'a proc -> 'a proc
+val subst_val : (string, value) M.t -> value -> value
+val subst_proc : (string, value) M.t -> 'a proc -> 'a proc

@@ -17,10 +17,10 @@ type fundef = string * string list * expr
 type prog = fundef list * expr
 
 
-val pp_print_prog :  Format.formatter -> prog -> unit
+val pp_print_prog : Format.formatter -> prog -> unit
 
 val print_prog : out_channel -> prog -> unit
 
 
-val subst_expr : (string, string) M.t -> expr -> expr
+val subst_expr : (string, value) M.t -> expr -> expr
                           (* val *)

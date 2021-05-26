@@ -37,4 +37,4 @@ let rec pp_print_t ppf = function
     | SBool -> pp_print_string ppf "bool" 
     | SInt -> pp_print_string ppf "int"
     | SCh(ts,i) -> 
-        fprintf ppf "@[ch(%a; %d)@]" (pp_print_list pp_print_t) ts i   (* 改善の余地*)
+        fprintf ppf "ch(@[%a;@ region=%d@])" (pp_print_list pp_print_t) ts i   (* 改善の余地*)

@@ -44,9 +44,9 @@ let rec trans env = function
         let e,f = trans (M.add_list yts env) p in
         Skip, (M.singleton t [(env, delch yts, e)]) + f
     | Out(x,vs,p) -> 
-        let t = M.find x env in
+        let t = M.find x env in  (* is_type x env *)
+        let vts = List.map (fun v -> match v with Var(x) -> (v, M.find x env) | _ -> (v, SInt)) vs in  (*bool*) (* type_of v env *)
         let e,f = trans env p in
-        let vts = List.map (fun v -> match v with Var(x) -> (v, M.find x env) | _ -> (v, SInt)) vs in  (*bool*)
         Choice(Call(function_name t, delch vts), e), f
     | Par(p1,p2) -> 
         let e1,f1 = trans env p1 in
@@ -69,7 +69,7 @@ let makefunc (f : (SimpleType.t, ((string, SimpleType.t) M.t * string list * Seq
     M.fold_left
         (fun fundefs t l -> 
             let new_args = match t with SCh(ts,_) -> List.map (fun _ -> incr num; "arg" ^ string_of_int !num) (List.filter ((=) SInt  (*SBool*)) ts) | _ -> assert false in
-            fundefs @ [(function_name t, new_args, List.fold_left (fun expr (env,ys,e) -> Choice(expr, close env (subst_expr (M.of_list2 ys new_args) e))) Skip l)])
+            fundefs @ [(function_name t, new_args, List.fold_left (fun expr (env,ys,e) -> Choice(expr, close env (subst_expr (M.of_list2 ys (List.map (fun z -> Var(z)) new_args)) e))) Skip l)])
         []
         f
 

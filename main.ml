@@ -13,10 +13,18 @@ let file filename =
     PiSyntax.print_proc stdout alpha_proc;
     let simpletyped_proc = SimpleTyping.typing alpha_proc in
     PiSyntax.print_proc ~pp_print_t:SimpleType.pp_print_t stdout simpletyped_proc;
-    let simpletransformed_prog = SimpleTransform.transform simpletyped_proc in
-    SeqSyntax.print_prog stdout simpletransformed_prog;
-    (* close_out outchan *)
-    ()
+    if !simple_mode then (
+        let simpletransformed_prog = SimpleTransform.transform simpletyped_proc in
+        SeqSyntax.print_prog stdout simpletransformed_prog;
+        (* close_out outchan *)
+        ()
+    ) else (
+        let (refinementtyped_proc, chc) = RefinementTyping.typing simpletyped_proc in
+        PiSyntax.print_proc ~pp_print_t:RefinementType.pp_print_t stdout refinementtyped_proc;
+        ()
+    )
+
+
 
 let main () =
     let filenames = ref [] in

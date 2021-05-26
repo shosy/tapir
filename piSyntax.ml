@@ -1,5 +1,5 @@
 (** operators **)
-type op = NOT | AND | OR | EQ | LT | GT | LE | GE | MINUS | ADD | SUB | MUL | DIV
+type op = NOT | AND | OR | IMPLY | EQ | LT | GT | LE | GE | MINUS | ADD | SUB | MUL | DIV
 
 (** syntax of values **)
 type value =
@@ -7,6 +7,7 @@ type value =
     | Bool of bool
     | Int of int
     | Op of op * value list
+    | Unknown of string * value list
 
 (** syntax of processes **)
 (** the parameter 'a denotes the type of type expressions for bound variables **)
@@ -28,6 +29,7 @@ let op_name = function
     | NOT -> "not"
     | AND -> "and"
     | OR -> "or"
+    | IMPLY -> "->"
     | EQ -> "="
     | LT -> "<"
     | GT -> ">"
@@ -44,6 +46,7 @@ let val_name = function
     | Bool(_) -> "bool"
     | Int(_) -> "int"
     | Op(op,_) -> op_name op
+    | Unknown(_) -> "unknown"
 
 let prec_or = 1
 let prec_and = 2
@@ -77,6 +80,8 @@ let rec pp_print_val ppf v =
     | Op(EQ,[v1;v2]) | Op(LT,[v1;v2]) | Op(GT,[v1;v2]) | Op(LE,[v1;v2]) | Op(GE,[v1;v2]) 
     | Op(ADD,[v1;v2]) | Op(SUB,[v1;v2]) | Op(MUL,[v1;v2]) | Op(DIV,[v1;v2]) ->
         fprintf ppf "%a %s %a" pp_print_val v1 (val_name v) pp_print_val v2
+    | Unknown(x,vs) -> 
+        fprintf ppf "(%s %a)" x (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs
     | _ -> assert false
 
 (* let string_of_val v = fprintf str_formatter "%a" pp_print_val v *)
@@ -106,12 +111,12 @@ let rec pr_proc ?pp_print_t prec ppf =
         | Some(pp_print_t) -> fprintf ppf "@[%s?%a.@ %a@]" x (pp_print_list (pp_print_pair pp_print_string pp_print_t))               yts  (pr_proc prec_io) p)
     | RIn(x,yts,Nil) -> 
         (match pp_print_t with
-        | None             -> fprintf ppf "*@[%s?%a@]" x (pp_print_list                pp_print_string            ) (List.map fst yts) 
-        | Some(pp_print_t) -> fprintf ppf "*@[%s?%a@]" x (pp_print_list (pp_print_pair pp_print_string pp_print_t))               yts )
+        | None             -> fprintf ppf "@[*%s?%a@]" x (pp_print_list                pp_print_string            ) (List.map fst yts) 
+        | Some(pp_print_t) -> fprintf ppf "@[*%s?%a@]" x (pp_print_list (pp_print_pair pp_print_string pp_print_t))               yts )
     | RIn(x,yts,p) -> 
         (match pp_print_t with
-        | None             -> fprintf ppf "*@[%s?%a.@ %a@]" x (pp_print_list                pp_print_string             ) (List.map fst yts) (pr_proc prec_io) p
-        | Some(pp_print_t) -> fprintf ppf "*@[%s?%a.@ %a@]" x (pp_print_list (pp_print_pair pp_print_string pp_print_t))                yts  (pr_proc prec_io) p)
+        | None             -> fprintf ppf "@[*%s?%a.@ %a@]" x (pp_print_list                pp_print_string             ) (List.map fst yts) (pr_proc prec_io) p
+        | Some(pp_print_t) -> fprintf ppf "@[*%s?%a.@ %a@]" x (pp_print_list (pp_print_pair pp_print_string pp_print_t))                yts  (pr_proc prec_io) p)
     | Out(x,vs,Nil) ->
         fprintf ppf "@[%s!%a@]" x (pp_print_list pp_print_val) vs
     | Out(x,vs,p) -> 
@@ -147,13 +152,17 @@ let p =
 let _ = print_proc stdout p 
 *)
 
-let rec subst_var map x = try M.find x map with Not_found -> x
 
 let rec subst_val map = function
-    | Var(x) -> Var(subst_var map x)
+    | Var(x) -> (try M.find x map with Not_found -> Var(x))
     | Bool(b) -> Bool(b)
     | Int(i) -> Int(i)
     | Op(op,vs) -> Op(op, List.map (subst_val map) vs)
+    | Unknown(x,vs) -> Unknown(x, List.map (subst_val map) vs)  (* xはそのままで *)
+
+let subst_var map x = 
+    try (match M.find x map with Var(y) -> y | _ -> failwith "subst channel")
+    with Not_found -> x
 
 let rec subst_proc map = function
     | Nil -> Nil
