@@ -42,6 +42,11 @@ _opam/
 /modelParser.output
 /modelLexer.ml
 
+/UAutomizer-linux/data/
+/UAutomizer-linux/Ultimate.log
+
 *.smt2
 *.hoice
 *.c
+*.result
+

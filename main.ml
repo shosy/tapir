@@ -36,6 +36,7 @@ let file filename =
         let cchan = open_out (filename^".c") in
         SeqSyntax.print_prog cchan completed;
         close_out cchan;
+        let _ = Sys.command ("cd UAutomizer-linux/; ./Ultimate.py --spec ../PropertyTermination.prp --file "^("../"^filename^".c")^" --architecture 64bit > "^("../"^filename^".result")^"; cd ../") in
         ()
     )
 
