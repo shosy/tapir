@@ -1,0 +1,165 @@
+(** operators **)
+type op = NOT | AND | OR | EQ | LT | GT | LE | GE | MINUS | ADD | SUB | MUL | DIV
+
+(** syntax of values **)
+type value =
+    | Var of string
+    | Bool of bool
+    | Int of int
+    | Op of op * value list
+
+(** syntax of processes **)
+(** the parameter 'a denotes the type of type expressions for bound variables **)
+type 'a proc =
+    | Nil
+    | Nu of string * 'a * 'a proc
+    | In of string * (string * 'a) list * 'a proc
+    | RIn of string * (string * 'a) list * 'a proc
+    | Out of string * value list * 'a proc
+    | Par of 'a proc * 'a proc
+    | If of value * 'a proc * 'a proc
+
+
+(** pretty-print **)
+open Format
+open Utilities
+
+let op_name = function
+    | NOT -> "not"
+    | AND -> "and"
+    | OR -> "or"
+    | EQ -> "="
+    | LT -> "<"
+    | GT -> ">"
+    | LE -> "<="
+    | GE -> ">="
+    | MINUS -> "-"
+    | ADD -> "+"
+    | SUB -> "-"
+    | MUL -> "*"
+    | DIV -> "/"
+
+let val_name = function
+    | Var(_) -> "var"
+    | Bool(_) -> "bool"
+    | Int(_) -> "int"
+    | Op(op,_) -> op_name op
+
+let prec_or = 1
+let prec_and = 2
+let prec_eq = 3
+let prec_addsub = 4
+let prec_muldiv = 5
+let prec_minus = 6
+let prec_not = 7
+
+(* let rec pr_val prec ppf = function
+    | Var(x) -> pp_print_string ppf x
+    | Bool(b) -> pp_print_bool ppf b
+    | Int(i) -> pp_print_int ppf i
+    | Op(NOT,[v]) -> 
+        if prec > prec_not then pp_print_string ppf "(";
+        fprintf ppf "not %a" pp_print_val v;
+        if prec > prec_not then pp_print_string ppf ")";
+    | Op(MINUS,[v]) -> 
+
+    | Op(OR,[v1;v2]) ->
+        if prec > prec_or then  *)
+
+
+let rec pp_print_val ppf v =
+    match v with
+    | Var(x) -> pp_print_string ppf x
+    | Int(i) -> pp_print_int ppf i
+    | Op(NOT,[v]) -> fprintf ppf "not %a" pp_print_val v 
+    | Op(MINUS,[v]) -> fprintf ppf "- %a" pp_print_val v 
+    | Op(AND,[v1;v2]) | Op(OR,[v1;v2]) 
+    | Op(EQ,[v1;v2]) | Op(LT,[v1;v2]) | Op(GT,[v1;v2]) | Op(LE,[v1;v2]) | Op(GE,[v1;v2]) 
+    | Op(ADD,[v1;v2]) | Op(SUB,[v1;v2]) | Op(MUL,[v1;v2]) | Op(DIV,[v1;v2]) ->
+        fprintf ppf "%a %s %a" pp_print_val v1 (val_name v) pp_print_val v2
+    | _ -> assert false
+
+(* let string_of_val v = fprintf str_formatter "%a" pp_print_val v *)
+
+let prec_nu = 1
+let prec_par = 2
+let prec_if = 3
+let prec_io = 4
+
+let rec pr_proc ?pp_print_t prec ppf = 
+    let pr_proc prec ppf p = match pp_print_t with None -> pr_proc prec ppf p | Some(pp_print_t) -> pr_proc ~pp_print_t:pp_print_t prec ppf p in
+    function
+    | Nil -> pp_print_string ppf "O"
+    | Nu(x,t,p) -> 
+        if prec > prec_nu then pp_print_string ppf "(";
+        (match pp_print_t with
+        | None             -> fprintf ppf "@[new %s in@ %a@]"                                             x    (pr_proc prec_nu) p
+        | Some(pp_print_t) -> fprintf ppf "@[new %a in@ %a@]" (pp_print_pair pp_print_string pp_print_t) (x,t) (pr_proc prec_nu) p);
+        if prec > prec_nu then pp_print_string ppf ")"
+    | In(x,yts,Nil) -> 
+        (match pp_print_t with
+        | None             -> fprintf ppf "@[%s?%a@]" x (pp_print_list                pp_print_string            ) (List.map fst yts) 
+        | Some(pp_print_t) -> fprintf ppf "@[%s?%a@]" x (pp_print_list (pp_print_pair pp_print_string pp_print_t))               yts )
+    | In(x,yts,p) -> 
+        (match pp_print_t with
+        | None             -> fprintf ppf "@[%s?%a.@ %a@]" x (pp_print_list                pp_print_string            ) (List.map fst yts) (pr_proc prec_io) p
+        | Some(pp_print_t) -> fprintf ppf "@[%s?%a.@ %a@]" x (pp_print_list (pp_print_pair pp_print_string pp_print_t))               yts  (pr_proc prec_io) p)
+    | RIn(x,yts,Nil) -> 
+        (match pp_print_t with
+        | None             -> fprintf ppf "*@[%s?%a@]" x (pp_print_list                pp_print_string            ) (List.map fst yts) 
+        | Some(pp_print_t) -> fprintf ppf "*@[%s?%a@]" x (pp_print_list (pp_print_pair pp_print_string pp_print_t))               yts )
+    | RIn(x,yts,p) -> 
+        (match pp_print_t with
+        | None             -> fprintf ppf "*@[%s?%a.@ %a@]" x (pp_print_list                pp_print_string             ) (List.map fst yts) (pr_proc prec_io) p
+        | Some(pp_print_t) -> fprintf ppf "*@[%s?%a.@ %a@]" x (pp_print_list (pp_print_pair pp_print_string pp_print_t))                yts  (pr_proc prec_io) p)
+    | Out(x,vs,Nil) ->
+        fprintf ppf "@[%s!%a@]" x (pp_print_list pp_print_val) vs
+    | Out(x,vs,p) -> 
+        fprintf ppf "@[%s!%a.@ %a@]" x (pp_print_list pp_print_val) vs (pr_proc prec_io) p
+    | Par(p1,p2) -> 
+        if prec > prec_par then pp_print_string ppf "(";
+        fprintf ppf "@[%a@ | %a@]" (pr_proc prec_par) p1 (pr_proc prec_par) p2;
+        if prec > prec_par then pp_print_string ppf ")"
+    | If(v,p1,p2) -> 
+        if prec > prec_if then pp_print_string ppf "(";
+        fprintf ppf "@[if %a@ then %a@ else %a@]" pp_print_val v (pr_proc prec_if) p1 (pr_proc prec_if) p2;
+        if prec > prec_if then pp_print_string ppf ")"
+
+let pp_print_proc ?pp_print_t ppf p = 
+    let pr_proc prec ppf p = match pp_print_t with None -> pr_proc prec ppf p | Some(pp_print_t) -> pr_proc ~pp_print_t:pp_print_t prec ppf p in
+    let prec = 0 in
+    pr_proc prec ppf p 
+
+let print_proc ?pp_print_t oc p = 
+    let pp_print_proc ppf p = match pp_print_t with None -> pp_print_proc ppf p | Some(pp_print_t) -> pp_print_proc ~pp_print_t:pp_print_t ppf p in
+    fprintf (formatter_of_out_channel oc) "%a@." pp_print_proc p
+
+
+
+
+
+(* 
+let p = 
+    RIn("fact", [("n",()); ("r",())], 
+        If(Var("n"), Out("r", [Int(1)], Nil),
+                     Nu("r'", (), Out("r'", [Var("n")], Nil))))
+
+let _ = print_proc stdout p 
+*)
+
+let rec subst_var map x = try M.find x map with Not_found -> x
+
+let rec subst_val map = function
+    | Var(x) -> Var(subst_var map x)
+    | Bool(b) -> Bool(b)
+    | Int(i) -> Int(i)
+    | Op(op,vs) -> Op(op, List.map (subst_val map) vs)
+
+let rec subst_proc map = function
+    | Nil -> Nil
+    | Nu(x,t,p) -> Nu(x, t, subst_proc (M.remove x map) p)
+    | In(x,yts,p) -> In(subst_var map x, yts, subst_proc (M.remove_list (List.map fst yts) map) p)
+    | RIn(x,yts,p) -> RIn(subst_var map x, yts, subst_proc (M.remove_list (List.map fst yts) map) p)
+    | Out(x,vs,p) -> Out(subst_var map x, List.map (subst_val map) vs, subst_proc map p)
+    | Par(p1,p2) -> Par(subst_proc map p1, subst_proc map p2)
+    | If(v,p1,p2) -> If(subst_val map v, subst_proc map p1, subst_proc map p2)
