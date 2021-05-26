@@ -91,7 +91,7 @@ value:
 | LPAREN SLASH value_list RPAREN
     { Op(DIV, $3) }
 | LPAREN EXISTS LPAREN ident_type_list RPAREN value RPAREN
-    { Bool(true) }    /* 本当にident_type_list, 相当まずい */
+    { Exists($4, $6) }    /* 本当にident_type_list, 相当まずい */
 | LPAREN IDENT value_list RPAREN
     { Unknown($2, $3) }
 ;

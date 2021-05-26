@@ -8,6 +8,7 @@ type value =
     | Int of int
     | Op of op * value list
     | Unknown of string * value list
+    | Exists of string list * value
 
 (** syntax of processes **)
 (** the parameter 'a denotes the type of type expressions for bound variables **)
@@ -130,6 +131,8 @@ let rec pp_print_val ppf = function
         | vs -> (pp_print_list ~left:"(" ~right:")" ~delimiter:(" "^op_name op) pp_print_val) ppf vs)
     | Unknown(phi,vs) ->
         fprintf ppf "(@[%s@ %a@])" phi (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs
+    | Exists(xs,v) -> 
+        fprintf ppf "(@[exists %a@ %a@])" (pp_print_list ~left:"(" ~right:")" ~delimiter:"" pp_print_string) xs pp_print_val v
 
 let prec_nu = 1
 let prec_par = 2
@@ -204,6 +207,7 @@ let rec subst_val map = function
     | Int(i) -> Int(i)
     | Op(op,vs) -> Op(op, List.map (subst_val map) vs)
     | Unknown(x,vs) -> Unknown(x, List.map (subst_val map) vs)  (* xはそのままで *)
+    | Exists(xs,v) -> Exists(xs, subst_val (M.remove_list xs map) v)
 
 let subst_var map x = 
     try (match M.find x map with Var(y) -> y | _ -> failwith "subst channel")

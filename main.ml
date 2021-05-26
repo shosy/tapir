@@ -31,7 +31,8 @@ let file filename =
         let lexbuf = Lexing.from_channel hoicechan in
         let parsed_model = ModelParser.toplevel ModelLexer.token lexbuf in
         close_in hoicechan;
-        let completed = ModelSyntax.apply_prog parsed_model refinementtransformed_prog in
+        let no_exists_model = ModelSyntax.del_exists parsed_model in
+        let completed = ModelSyntax.apply_prog no_exists_model refinementtransformed_prog in
         let cchan = open_out (filename^".c") in
         SeqSyntax.print_prog cchan completed;
         close_out cchan;
