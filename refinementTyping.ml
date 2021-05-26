@@ -14,20 +14,27 @@ let rec find x = function
 let add_list xts env = List.fold_left (fun env (x,t) -> add (Bind(x,t)) env) env xts 
 
 
+
+
+let predvars = ref M.empty
+
+
 let num = ref 0
 let new_var () =
     incr num;
     "_v" ^ string_of_int !num
-let new_predvar () =
+let new_predvar xs =
     incr num;
-    "_p" ^ string_of_int !num
+    let phi = "_p" ^ string_of_int !num in
+    predvars := M.add phi (List.length(xs)) !predvars;
+    Unknown(phi, List.map (fun x -> Var(x)) xs)
 
 
 let rec new_t intfreevars = function
     | SimpleType.SInt ->
         let x = new_var () in
-        let p = new_predvar () in
-        RInt(x, Unknown(p, List.map (fun y -> Var(y)) (intfreevars @ [x])))
+        let v = new_predvar (intfreevars @ [x]) in
+        RInt(x, v)
     | SimpleType.SCh(ts,i) ->
         let new_args = List.map (fun _ -> new_var ()) ts in
         let (zts,_) = List.fold_left2 
@@ -137,3 +144,70 @@ let typing p =
     infer_proc !extenv p
     
 
+
+
+(** smt2 **)
+open Format
+open Utilities
+
+let op_name = function
+    | NOT -> "not"
+    | AND -> "and"
+    | OR -> "or"
+    | IMPLY -> "=>"
+    | EQ -> "="
+    | LT -> "<"
+    | GT -> ">"
+    | LE -> "<="
+    | GE -> ">="
+    | MINUS -> "-"  (* これを利用したとき、スペースのせいで失敗しないか *)
+    | ADD -> "+"
+    | SUB -> "-"
+    | MUL -> "*"
+    | DIV -> "/"
+
+let rec pp_print_val ppf = function
+    | Var(x) -> pp_print_string ppf x
+    | Bool(b) -> pp_print_bool ppf b
+    | Int(i) -> pp_print_int ppf i
+    | Op(op,vs) -> 
+        fprintf ppf "(@[%s@ %a@])" (op_name op) (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs
+    | Unknown(x,vs) ->
+        fprintf ppf "(@[%s@ %a@])" x (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs
+
+
+(* 
+let rec pvars_proc = function
+    | Nil -> S.empty
+    | Nu(_,_,p) | In(_,_,p) | RIn(_,_,p) | Out(_,_,p) -> pvars_proc p
+    | Par(p1,p2) -> pvars_proc p1  *)
+
+
+
+let rec fv_val = function
+    | Var(x) -> S.singleton x
+    | Bool(_) | Int(_) -> S.empty
+    | Op(_,vs) | Unknown(_,vs) -> List.fold_left (fun set v -> S.union set (fv_val v)) S.empty vs
+
+let pp_print_declfun ppf (phi,i) =  (* iだけじゃだめ、intじゃなくてboolの可能性も *)
+    let rec gen_list i = if i = 0 then [] else "Int" :: gen_list (i-1) in
+    fprintf ppf "(@[declare-fun@ %s@ %a@ Bool@])" 
+        phi 
+        (pp_print_list ~left:"(" ~right:")" ~delimiter:"" pp_print_string) (gen_list i)  
+
+
+let pp_print_assert ppf v = 
+    let fv = S.to_list (fv_val v) in
+    let rec gen_list = function [] -> [] | x::xs -> (x, "Int") :: gen_list xs in
+    fprintf ppf "(@[assert (@[forall (%a)@ %a@])@])"
+        (pp_print_list ~left:"" ~right:"" ~delimiter:"" (pp_print_pair ~left:"(" ~right:")" ~delimiter:"" pp_print_string pp_print_string)) (gen_list fv)
+        pp_print_val v
+
+let pp_print_smt2 ppf chc =
+    fprintf ppf "@[<v 0>(set-logic HORN)@ %a@ %a@ (check-sat)@ (get-model)@]" 
+        (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_declfun) (M.to_list !predvars)
+        (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_assert) chc                                          
+
+let print_smt2 oc chc = 
+    fprintf (formatter_of_out_channel oc) "%a@." pp_print_smt2 chc
+ 

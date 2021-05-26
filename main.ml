@@ -21,6 +21,11 @@ let file filename =
     ) else (
         let (refinementtyped_proc, chc) = RefinementTyping.typing simpletyped_proc in
         PiSyntax.print_proc ~pp_print_t:RefinementType.pp_print_t stdout refinementtyped_proc;
+        let smt2chan = open_out (filename^".smt2") in
+        RefinementTyping.print_smt2 smt2chan chc;
+        let _ = Sys.command ("hoice "^(filename^".smt2")^" > "^(filename^".hoice")) in
+        (* print?\ chc *)
+
         ()
     )
 

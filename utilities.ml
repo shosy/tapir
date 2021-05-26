@@ -1,7 +1,12 @@
 open Format
 
-let pp_print_pair pp_print_t1 pp_print_t2 ppf (x1,x2) =
-    fprintf ppf "@[%a: %a@]" pp_print_t1 x1 pp_print_t2 x2
+let pp_print_pair ?(left="") ?(right="") ?(delimiter=":") pp_print_t1 pp_print_t2 ppf (x1,x2) =
+    fprintf ppf "%s@[%a%s %a@]%s" 
+        left
+        pp_print_t1 x1
+        delimiter
+        pp_print_t2 x2
+        right
 
 let rec pr_list ~delimiter pp_print_t ppf = function
     | [] -> ()

@@ -37,3 +37,6 @@ _opam/
 /piParser.ml
 /piParser.output
 /piLexer.ml
+
+*.smt2
+*.hoice
