@@ -88,12 +88,12 @@ let rec pp_print_val ppf v =
     | _ -> assert false 
 *)
 
-let op_name = function
+let op_name = function  (* C用にしているがご愛顧 *)
     | NOT -> "not"
-    | AND -> "and"
-    | OR -> "or"
-    | IMPLY -> "=>"
-    | EQ -> "="
+    | AND -> "&&"
+    | OR -> "||"
+    | IMPLY -> failwith "IMPLY"  (* imply別にしても良さそう *)
+    | EQ -> "=="
     | LT -> "<"
     | GT -> ">"
     | LE -> "<="
@@ -104,16 +104,32 @@ let op_name = function
     | MUL -> "*"
     | DIV -> "/"
 
+(* 
 let rec pp_print_val ppf = function
     | Var(x) -> pp_print_string ppf x
     | Bool(b) -> pp_print_bool ppf b
     | Int(i) -> pp_print_int ppf i
     | Op(op,vs) -> 
         fprintf ppf "(@[%s@ %a@])" (op_name op) (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs
-    | Unknown(x,vs) ->
-        fprintf ppf "(@[%s@ %a@])" x (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs
+    | Unknown(phi,vs) ->
+        fprintf ppf "(@[%s@ %a@])" phi (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs 
+*)
 
 (* let string_of_val v = fprintf str_formatter "%a" pp_print_val v *)
+
+
+let rec pp_print_val ppf = function
+    | Var(x) -> pp_print_string ppf x
+    | Bool(b) -> pp_print_bool ppf b
+    | Int(i) -> 
+        if i >= 0 then pp_print_int ppf i    (* 本当はi<0で区別すべき?? *)
+        else fprintf ppf "(%d)" i
+    | Op(op,vs) -> 
+        (match vs with
+        | [v] -> fprintf ppf "(@[%s@ %a@])" (op_name op) pp_print_val v
+        | vs -> (pp_print_list ~left:"(" ~right:")" ~delimiter:(" "^op_name op) pp_print_val) ppf vs)
+    | Unknown(phi,vs) ->
+        fprintf ppf "(@[%s@ %a@])" phi (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs
 
 let prec_nu = 1
 let prec_par = 2

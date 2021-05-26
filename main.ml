@@ -32,7 +32,9 @@ let file filename =
         let parsed_model = ModelParser.toplevel ModelLexer.token lexbuf in
         close_in hoicechan;
         let completed = ModelSyntax.apply_prog parsed_model refinementtransformed_prog in
-        SeqSyntax.print_prog stdout completed;
+        let cchan = open_out (filename^".c") in
+        SeqSyntax.print_prog cchan completed;
+        close_out cchan;
         ()
     )
 

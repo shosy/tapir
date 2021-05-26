@@ -17,7 +17,7 @@ open PiSyntax
 let rec pp_print_t ppf = function
     | RInt(x,v) -> fprintf ppf "@[{%s : int | %a}@]" x pp_print_val v
     | RCh(zts,i) -> 
-        fprintf ppf "ch(@[%a;@ %d@])" (pp_print_list (pp_print_pair pp_print_string pp_print_t)) zts i
+        fprintf ppf "ch(@[%a;@ region=%d@])" (pp_print_list (pp_print_pair pp_print_string pp_print_t)) zts i
 
 
 

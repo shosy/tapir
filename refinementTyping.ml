@@ -166,14 +166,14 @@ let op_name = function
     | MUL -> "*"
     | DIV -> "/"
 
-let rec pp_print_val ppf = function
+let rec pp_print_val_for_smt2 ppf = function
     | Var(x) -> pp_print_string ppf x
     | Bool(b) -> pp_print_bool ppf b
     | Int(i) -> pp_print_int ppf i
     | Op(op,vs) -> 
-        fprintf ppf "(@[%s@ %a@])" (op_name op) (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs
+        fprintf ppf "(@[%s@ %a@])" (op_name op) (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val_for_smt2) vs
     | Unknown(x,vs) ->
-        fprintf ppf "(@[%s@ %a@])" x (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs
+        fprintf ppf "(@[%s@ %a@])" x (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val_for_smt2) vs
 
 
 (* 
@@ -201,7 +201,7 @@ let pp_print_assert ppf v =
     let rec gen_list = function [] -> [] | x::xs -> (x, "Int") :: gen_list xs in
     fprintf ppf "(@[assert (@[forall (%a)@ %a@])@])"
         (pp_print_list ~left:"" ~right:"" ~delimiter:"" (pp_print_pair ~left:"(" ~right:")" ~delimiter:"" pp_print_string pp_print_string)) (gen_list fv)
-        pp_print_val v
+        pp_print_val_for_smt2 v
 
 let pp_print_smt2 ppf chc =
     fprintf ppf "@[<v 0>(set-logic HORN)@ %a@ %a@ (check-sat)@ (get-model)@]" 
