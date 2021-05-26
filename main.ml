@@ -21,6 +21,8 @@ let file filename =
     ) else (
         let (refinementtyped_proc, chc) = RefinementTyping.typing simpletyped_proc in
         PiSyntax.print_proc ~pp_print_t:RefinementType.pp_print_t stdout refinementtyped_proc;
+        let refinementtransformed_prog = RefinementTransform.transform refinementtyped_proc in
+        SeqSyntax.print_prog stdout refinementtransformed_prog;
         let smt2chan = open_out (filename^".smt2") in
         RefinementTyping.print_smt2 smt2chan chc;
         close_out smt2chan;
@@ -29,6 +31,8 @@ let file filename =
         let lexbuf = Lexing.from_channel hoicechan in
         let parsed_model = ModelParser.toplevel ModelLexer.token lexbuf in
         close_in hoicechan;
+        let completed = ModelSyntax.apply_prog parsed_model refinementtransformed_prog in
+        SeqSyntax.print_prog stdout completed;
         ()
     )
 

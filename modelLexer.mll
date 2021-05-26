@@ -25,10 +25,11 @@ rule token = parse
 | "-"       { MINUS }
 | "*"       { AST }
 | "/"       { SLASH }
+| "exists"  { EXISTS }
 | eof       { EOF }
 | digit+
     { INT(int_of_string (Lexing.lexeme lexbuf)) }
-| (lower|upper|'_') (digit|lower|upper|'_')+
+| ((lower|upper|'_') (digit|lower|upper|'_')+) | ("define-fun")
     { let s = Lexing.lexeme lexbuf in
       IDENT(s) }
 | _

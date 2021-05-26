@@ -42,14 +42,14 @@ definefun_list:
     { $1 :: $2 }
 
 definefun:
-  LPAREN IDENT IDENT LPAREN ident_list RPAREN IDENT value RPAREN  /* arglist = [] */
+  LPAREN IDENT IDENT LPAREN ident_type_list RPAREN IDENT value RPAREN  /* arglist = [] */
     { ($3, ($5, $8)) }
 ;
 
-ident_list:
+ident_type_list:
   LPAREN IDENT IDENT RPAREN
     { [$2] }
-| LPAREN IDENT IDENT RPAREN ident_list
+| LPAREN IDENT IDENT RPAREN ident_type_list
     { $2 :: $5 }
 ;
 
@@ -90,6 +90,8 @@ value:
     { Op(MUL, $3) }
 | LPAREN SLASH value_list RPAREN
     { Op(DIV, $3) }
-| LPAREN EXISTS LPAREN ident_list RPAREN value RPAREN
-    { Bool(true) }    /* 相当まずい */
+| LPAREN EXISTS LPAREN ident_type_list RPAREN value RPAREN
+    { Bool(true) }    /* 本当にident_type_list, 相当まずい */
+| LPAREN IDENT value_list RPAREN
+    { Unknown($2, $3) }
 ;

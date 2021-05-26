@@ -25,7 +25,7 @@ open PiSyntax
 let nondet = "nondet()"
 
 let rec pp_print_expr ppf = function
-    | Skip -> pp_print_string ppf "return;"
+    | Skip -> pp_print_string ppf "return 0;"
     | Let(x,v,e) -> 
         fprintf ppf "@[<v 0>int %s = %a;@ %a@]" x pp_print_val v pp_print_expr e 
     | LetNonDet(x,e) ->
@@ -36,18 +36,19 @@ let rec pp_print_expr ppf = function
         fprintf ppf "@[<v 0>if (%s) {@;<1 4>%a@ } else {@;<1 4>%a@ }@]" nondet pp_print_expr e1 pp_print_expr e2
     | If(v,e1,e2) -> 
         fprintf ppf "@[<v 0>if (%a) {@;<1 4>%a@ } else {@;<1 4>%a@ }@]" pp_print_val v pp_print_expr e1 pp_print_expr e2
-    | Assume(v,e) -> failwith "assume"
+    | Assume(v,e) -> 
+        fprintf ppf "@[<v 0>if (%a) {@;<1 4>%a@ } else {@;<1 4>return 0;@ }@]" pp_print_val v pp_print_expr e
 (* value @[<h 0>]を指定 *)
 (* valueのpred *)
 
 let pp_print_fundef ppf (f,ys,e) =
-    fprintf ppf "@[void %s%a {@  %a@ }@]" f (pp_print_list pp_print_string) ys pp_print_expr e
+    fprintf ppf "@[int %s%a {@  %a@ }@]" f (pp_print_list pp_print_string) ys pp_print_expr e
 
 let pp_print_mainfundef ppf e =
     fprintf ppf "@[int main() {@ %a@ }@]" pp_print_expr e 
 
 let pp_print_prog ppf (fundefs,e) =
-    fprintf ppf "@[int nondet() { int n; return n; }@ %a@ %a@]" (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_fundef) fundefs pp_print_mainfundef e
+    fprintf ppf "@[#define true 1\n#define false 0\nint nondet() { int n; return n; }@ %a@ %a@]" (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_fundef) fundefs pp_print_mainfundef e
 
 let print_prog oc prog = fprintf (formatter_of_out_channel oc) "%a@." pp_print_prog prog
 

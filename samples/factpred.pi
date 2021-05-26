@@ -1,0 +1,4 @@
+  *pred?(n,r). r!(n-1)
+| *fact?(n,r). if n <= 0 then r!1 else 
+        (new r2 in new r3 in pred!(n,r2) | r2?n2. fact!(n2,r3) | r3?m. r!(n*m))
+| new r in fact!(n,r)

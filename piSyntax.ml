@@ -25,6 +25,7 @@ type 'a proc =
 open Format
 open Utilities
 
+(*
 let op_name = function
     | NOT -> "not"
     | AND -> "and"
@@ -47,6 +48,7 @@ let val_name = function
     | Int(_) -> "int"
     | Op(op,_) -> op_name op
     | Unknown(_) -> "unknown"
+*)
 
 let prec_or = 1
 let prec_and = 2
@@ -70,6 +72,7 @@ let prec_not = 7
         if prec > prec_or then  *)
 
 
+(* 
 let rec pp_print_val ppf v =
     match v with
     | Var(x) -> pp_print_string ppf x
@@ -82,7 +85,33 @@ let rec pp_print_val ppf v =
         fprintf ppf "%a %s %a" pp_print_val v1 (val_name v) pp_print_val v2
     | Unknown(x,vs) -> 
         fprintf ppf "(%s %a)" x (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs
-    | _ -> assert false
+    | _ -> assert false 
+*)
+
+let op_name = function
+    | NOT -> "not"
+    | AND -> "and"
+    | OR -> "or"
+    | IMPLY -> "=>"
+    | EQ -> "="
+    | LT -> "<"
+    | GT -> ">"
+    | LE -> "<="
+    | GE -> ">="
+    | MINUS -> "-"  (* これを利用したとき、スペースのせいで失敗しないか *)
+    | ADD -> "+"
+    | SUB -> "-"
+    | MUL -> "*"
+    | DIV -> "/"
+
+let rec pp_print_val ppf = function
+    | Var(x) -> pp_print_string ppf x
+    | Bool(b) -> pp_print_bool ppf b
+    | Int(i) -> pp_print_int ppf i
+    | Op(op,vs) -> 
+        fprintf ppf "(@[%s@ %a@])" (op_name op) (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs
+    | Unknown(x,vs) ->
+        fprintf ppf "(@[%s@ %a@])" x (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs
 
 (* let string_of_val v = fprintf str_formatter "%a" pp_print_val v *)
 
