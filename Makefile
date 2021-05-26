@@ -3,7 +3,9 @@ piSyntax.mli piSyntax.ml piParser.ml piLexer.ml alphaconv.mli alphaconv.ml \
 simpleType.mli simpleType.ml simpleTyping.mli simpleTyping.ml \
 seqSyntax.mli seqSyntax.ml simpleTransform.mli simpleTransform.ml \
 refinementType.mli refinementType.ml refinementTyping.mli refinementTyping.ml \
+modelSyntax.mli modelSyntax.ml modelParser.mly modelLexer.mll \
 main.ml
+# refinementTransform.mli refinementTransform.ml \
 
 RESULT = tapir
 

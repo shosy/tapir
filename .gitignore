@@ -37,6 +37,10 @@ _opam/
 /piParser.ml
 /piParser.output
 /piLexer.ml
+/modelParser.mli
+/modelParser.ml
+/modelParser.output
+/modelLexer.ml
 
 *.smt2
 *.hoice

@@ -23,9 +23,12 @@ let file filename =
         PiSyntax.print_proc ~pp_print_t:RefinementType.pp_print_t stdout refinementtyped_proc;
         let smt2chan = open_out (filename^".smt2") in
         RefinementTyping.print_smt2 smt2chan chc;
+        close_out smt2chan;
         let _ = Sys.command ("hoice "^(filename^".smt2")^" > "^(filename^".hoice")) in
-        (* print?\ chc *)
-
+        let hoicechan = open_in (filename^".hoice") in
+        let lexbuf = Lexing.from_channel hoicechan in
+        let parsed_model = ModelParser.toplevel ModelLexer.token lexbuf in
+        close_in hoicechan;
         ()
     )
 
