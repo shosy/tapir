@@ -45,8 +45,8 @@ _opam/
 /UAutomizer-linux/data/
 /UAutomizer-linux/Ultimate.log
 
+*.log
 *.smt2
 *.hoice
 *.c
 *.result
-

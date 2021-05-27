@@ -10,9 +10,14 @@ let file filename =
     let alpha_proc = Alphaconv.alphaconv parsed_proc in
     (* let outchan = open_out (filename^".tmp") in *)
     (* PiSyntax.print_proc outchan alpha_proc; *)
-    PiSyntax.print_proc stdout alpha_proc;
+    let logchan = open_out (filename^".log") in
+    (* Format.pp_print_string (Format.formatter_of_out_channel logchan) "****** alpha conversion ******\n";  *)
+    output_string logchan "****** alpha conversion ******\n"; 
+    PiSyntax.print_proc logchan alpha_proc;
     let simpletyped_proc = SimpleTyping.typing alpha_proc in
-    PiSyntax.print_proc ~pp_print_t:SimpleType.pp_print_t stdout simpletyped_proc;
+    (* Format.pp_print_string (Format.formatter_of_out_channel logchan) "****** simple type ******\n";  *)
+    output_string logchan "\n****** simple type ******\n"; 
+    PiSyntax.print_proc ~pp_print_t:SimpleType.pp_print_t logchan simpletyped_proc;
     if !simple_mode then (
         let simpletransformed_prog = SimpleTransform.transform simpletyped_proc in
         SeqSyntax.print_prog stdout simpletransformed_prog;
@@ -20,9 +25,14 @@ let file filename =
         ()
     ) else (
         let (refinementtyped_proc, chc) = RefinementTyping.typing simpletyped_proc in
-        PiSyntax.print_proc ~pp_print_t:RefinementType.pp_print_t stdout refinementtyped_proc;
+        (* Format.pp_print_string (Format.formatter_of_out_channel logchan) "****** refinement type ******\n";  *)
+        output_string logchan "\n****** refinement type ******\n"; 
+        PiSyntax.print_proc ~pp_print_t:RefinementType.pp_print_t logchan refinementtyped_proc;
         let refinementtransformed_prog = RefinementTransform.transform refinementtyped_proc in
-        SeqSyntax.print_prog stdout refinementtransformed_prog;
+        (* Format.pp_print_string (Format.formatter_of_out_channel logchan) "****** C program ******\n";  *)
+        output_string logchan "\n****** C program ******\n"; 
+        SeqSyntax.print_prog logchan refinementtransformed_prog;
+        close_out logchan;
         let smt2chan = open_out (filename^".smt2") in
         RefinementTyping.print_smt2 smt2chan chc;
         close_out smt2chan;
@@ -57,7 +67,8 @@ let main () =
     let start_t = Sys.time () in
     file filename;
     let end_t = Sys.time () in
-    print_float (end_t -. start_t)
+    print_float (end_t -. start_t);
+    print_newline ()
 
 let _ =
     main ()

@@ -61,7 +61,7 @@ let rec infer_val env = function
     | Var(x) when M.mem x env -> M.find x env
     | Var(x) when M.mem x !extenv -> M.find x !extenv
     | Var(x) -> 
-        print_string x;
+        (* print_string x; *)
         let t = TVar(ref None) in
         extenv := M.add x t !extenv;
         t
@@ -105,7 +105,7 @@ let rec deref_region = function
         r'
     | RVar({ contents = None } as ref) ->
         let r = R(incr region_num; !region_num) in
-        Printf.printf "make region %d.\n" !region_num;
+        (* Printf.printf "make region %d.\n" !region_num; *)
         ref := Some(r);
         r
 
@@ -118,13 +118,13 @@ let rec deref_t = function
         ref := Some(t');
         t'
     | TVar({ contents = None } as ref) ->
-        print_string "Ch() ni shita";
+        (* print_string "Ch() ni shita"; *)
         let t = TCh([], R(incr region_num; !region_num)) in
         ref := Some(t);
         t
 
 let rec extract_t = function
-    | TBool -> SimpleType.SInt  (*  *)
+    | TBool -> SimpleType.SInt  (* 嫌 *)
     | TInt -> SimpleType.SInt
     | TCh(ts,R(i)) -> SimpleType.SCh(List.map extract_t ts, i)
     | _ -> assert false
