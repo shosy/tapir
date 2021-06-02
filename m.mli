@@ -8,6 +8,7 @@ val merge : ('a -> 'b option -> 'c option -> 'd option) -> ('a, 'b) t -> ('a, 'c
 val find : 'a -> ('a, 'b) t -> 'b
 val fold_left : ('a -> 'b -> 'c -> 'a) -> 'a -> ('b, 'c) t -> 'a
 val fold_right : ('a -> 'b -> 'c -> 'c) -> ('a, 'b) t -> 'c -> 'c
+val partition : ('a -> 'b -> bool) -> ('a, 'b) t -> ('a, 'b) t * ('a, 'b) t
 val map : ('a -> 'b) -> ('c, 'a) t -> ('c, 'b) t
 val mapi : ('a -> 'b -> 'c) -> ('a, 'b) t -> ('a, 'c) t
 val add_list : ('a * 'b) list -> ('a, 'b) t -> ('a, 'b) t 

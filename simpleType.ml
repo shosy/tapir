@@ -6,6 +6,7 @@ type t =
 
 (** external type environment **)
 let extenv = ref M.empty
+let ext_bienv = ref M.empty 
 
 (** types of operators **)
 (* open PiSyntax
@@ -38,3 +39,23 @@ let rec pp_print_t ppf = function
     | SInt -> pp_print_string ppf "int"
     | SCh(ts,i) -> 
         fprintf ppf "ch(@[%a;@ region=%d@])" (pp_print_list pp_print_t) ts i   (* 改善の余地*)
+
+
+let is_bool t = (t = SBool)
+let is_int t = (t = SInt)
+let is_bool_or_int t = is_bool t || is_int t
+let is_ch = function SCh(_) -> true | _ -> false
+
+
+open PiSyntax
+let type_of bienv chenv = function
+    | Var(x) -> 
+        (try M.find x bienv with Not_found ->
+         try M.find x chenv with Not_found ->
+         assert false)
+    | Bool(_) -> SBool
+    | Int(_) -> SInt
+    | Op(NOT,_) | Op(AND,_) | Op(OR,_) | Op(IMPLY,_) | Op(EQ,_) | Op(LT,_) | Op(GT,_) | Op(LE,_) | Op(GE,_) -> SBool
+    | Op(MINUS,_) | Op(ADD,_) | Op(SUB,_) | Op(MUL,_) | Op(DIV,_) -> SInt
+    | Unknown(_) -> SBool
+    | Exists(_) -> SBool

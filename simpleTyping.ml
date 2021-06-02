@@ -142,10 +142,16 @@ let rec deref_proc = function
     | If(v,p1,p2) -> If(v, deref_proc p1, deref_proc p2)
 
 
+let close extenv p = 
+    let bienv,chenv = M.partition (fun _ t -> SimpleType.is_bool_or_int t) extenv in
+    SimpleType.ext_bienv := bienv;
+    M.fold_right (fun x t p -> Nu(x, t, p)) chenv p
+
+
 let typing p = 
     extenv := M.empty;
-    SimpleType.extenv := M.empty;
+    (* SimpleType.extenv := M.empty; *)
+    SimpleType.ext_bienv := M.empty;
     region_num := 0;
     let p' = infer_proc M.empty p in
-    SimpleType.extenv := M.map (fun t -> extract_t (deref_t t)) !extenv;
-    deref_proc p'
+    close (M.map (fun t -> extract_t (deref_t t)) !extenv) (deref_proc p')

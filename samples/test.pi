@@ -1,0 +1,4 @@
+  *id?(x,r). r!x
+| *succ?(x,r). r!(x+1)
+| *app?(x,f,r). f!(x,r)
+| new print in app!(n1,id,print) | app!(n2,succ,print)

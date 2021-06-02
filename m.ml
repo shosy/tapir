@@ -28,6 +28,8 @@ let fold_left f z0 map = List.fold_left (fun z (x,y) -> f z x y) z0 map
 
 let fold_right f map z0 = List.fold_right (fun (x,y) z -> f x y z) map z0
 
+let partition f map = List.partition (fun (x,y) -> f x y) map 
+    
 let map f map = List.map (fun (x,y) -> (x, f y)) map
 
 let mapi f map = List.map (fun (x,y) -> (x, f x y)) map
