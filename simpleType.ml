@@ -5,7 +5,6 @@ type t =
     | SCh of t list * int    (* the int parameter denotes the region of the channel *)
 
 (** external type environment **)
-let extenv = ref M.empty
 let ext_bienv = ref M.empty 
 
 (** types of operators **)

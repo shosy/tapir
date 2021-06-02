@@ -18,13 +18,14 @@ let file filename =
     (* Format.pp_print_string (Format.formatter_of_out_channel logchan) "****** simple type ******\n";  *)
     output_string logchan "\n****** simple type ******\n"; 
     PiSyntax.print_proc ~pp_print_t:SimpleType.pp_print_t logchan simpletyped_proc;
+    let sorted_proc = Sort.sort simpletyped_proc in
     if !simple_mode then (
-        let simpletransformed_prog = SimpleTransform.transform simpletyped_proc in
+        let simpletransformed_prog = SimpleTransform.transform sorted_proc in
         SeqSyntax.print_prog stdout simpletransformed_prog;
         (* close_out outchan *)
         ()
     ) else (
-        let (refinementtyped_proc, chc) = RefinementTyping.typing simpletyped_proc in
+        let (refinementtyped_proc, chc) = RefinementTyping.typing sorted_proc in
         (* Format.pp_print_string (Format.formatter_of_out_channel logchan) "****** refinement type ******\n";  *)
         output_string logchan "\n****** refinement type ******\n"; 
         PiSyntax.print_proc ~pp_print_t:RefinementType.pp_print_t logchan refinementtyped_proc;

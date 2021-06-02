@@ -13,8 +13,11 @@ type expr =
 (** syntax of function definitions **)
 type fundef = string * string list * expr
 
+(** syntax of sets of function definitions **)
+type fundefs = fundef list
+
 (** syntax of sequential programs **)
-type prog = fundef list * expr
+type prog = fundefs * expr
 
 
 
@@ -26,7 +29,7 @@ let rec fv_val = function
     | Bool(_) | Int(_) -> S.empty
     | Op(_,vs) | Unknown(_,vs) -> List.fold_left (fun set v -> S.union set (fv_val v)) S.empty vs
     | Exists(xs,v) -> S.diff (fv_val v) (S.of_list xs)
-let rec fv_expr = function
+let rec fv_expr = function  (* bool or int *)
     | Skip -> S.empty
     | Let(x,v,e) -> S.union (fv_val v) (S.remove x (fv_expr e))
     | LetNonDet(x,e) -> S.remove x (fv_expr e)

@@ -4,8 +4,7 @@ type t =
     | SInt
     | SCh of t list * int    (* the int parameter denotes the region of the channel *)
 
-(** external type environment **)
-val extenv : (string, t) M.t ref 
+(** external bool-type or int-type environment **)
 val ext_bienv : (string, t) M.t ref 
 
 (** types of operators **)

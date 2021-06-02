@@ -25,8 +25,8 @@ let rec sort_proc bienv chenv = function
         let (yts,zts) = sort_bindings bindings in
         RIn(x, yts @ zts, sort_proc (M.add_list yts bienv) (M.add_list zts chenv) p)
     | Out(x,vs,p) -> 
-        let (vs1,vs2) = sort_bindings (List.map (fun v -> (v, type_of bienv chenv v)) vs) in
-        Out(x, List.map fst (vs1 @ vs2), sort_proc bienv chenv p)
+        let (vts1,vts2) = sort_bindings (List.map (fun v -> (v, type_of bienv chenv v)) vs) in
+        Out(x, List.map fst (vts1 @ vts2), sort_proc bienv chenv p)
     | Par(p1,p2) -> Par(sort_proc bienv chenv p1, sort_proc bienv chenv p2)
     | If(v,p1,p2) -> If(v, sort_proc bienv chenv p1, sort_proc bienv chenv p2)
 

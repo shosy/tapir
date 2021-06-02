@@ -32,6 +32,7 @@ let of_list xs = List.fold_left (fun ls x -> add x ls) empty xs
 
 let to_list xs = xs
 
+let fold_left f y xs = List.fold_left f y xs
 let fold_right f xs y = List.fold_right f xs y
 
 let rec iter f = function

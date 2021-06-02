@@ -13,8 +13,14 @@ type expr =
 (** syntax of function definitions **)
 type fundef = string * string list * expr
 
+(** syntax of sets of function definitions **)
+type fundefs = fundef list
+
 (** syntax of sequential programs **)
-type prog = fundef list * expr
+type prog = fundefs * expr
+
+
+val fv_expr : expr -> string S.t
 
 
 val pp_print_prog : Format.formatter -> prog -> unit
