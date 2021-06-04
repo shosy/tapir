@@ -7,7 +7,7 @@ open SeqSyntax
 
 
 (* refinementTypingにも記載 *)
-let rec add el = function
+(* let rec add el = function
     | [] -> [el]
     | hd::tl -> 
         (match el, hd with
@@ -17,28 +17,28 @@ let rec find x = function
     | [] -> raise Not_found
     | Bind(y,t)::_ when y = x -> t
     | _::env -> find x env
-let add_list xts env = List.fold_left (fun env (x,t) -> add (Bind(x,t)) env) env xts 
+let add_list xts env = List.fold_left (fun env (x,t) -> add (Bind(x,t)) env) env xts  *)
 
 
-let num0 = ref 0
+(* let num0 = ref 0
 let new_var () =
     incr num0;
-    "_v" ^ string_of_int !num0
+    "_v" ^ string_of_int !num0 *)
 
 
 
 
 let function_name = function
-    | SCh(_,i) -> "function" ^ string_of_int i
+    | RCh(_,_,_,_,_,i) -> "function" ^ string_of_int i
     | _ -> assert false
 
 
-let rec simple = function
+(* let rec simple = function
     | RInt(_) -> SInt
-    | RCh(zts,i) -> SCh(List.map (fun (_,t) -> simple t) zts, i)
+    | RCh(zts,i) -> SCh(List.map (fun (_,t) -> simple t) zts, i) *)
 
 
-let (+) (f1 : (SimpleType.t, (rTypeEnv * string list * SeqSyntax.expr) list) M.t) f2 =
+(* let (+) (f1 : (SimpleType.t, (rTypeEnv * string list * SeqSyntax.expr) list) M.t) f2 =
     M.merge
         (fun t tmp1 tmp2 -> 
             match tmp1, tmp2 with
@@ -47,64 +47,67 @@ let (+) (f1 : (SimpleType.t, (rTypeEnv * string list * SeqSyntax.expr) list) M.t
             | None, Some(l2) -> Some(l2)
             | _ -> None)
         f1
-        f2
+        f2 *)
+let (+) (fundefs1 : fundefs) (fundefs2 : fundefs) : fundefs =
+    let m = M.merge
+        (fun f tmp1 tmp2 -> 
+            match tmp1, tmp2 with
+            | Some(ys1,e1), Some(ys2,e2) -> Some(ys1, Choice(e1, subst_expr (M.of_list2 ys2 (List.map (fun y -> Var(y)) ys1)) e2))
+            | Some(ys,e), None -> Some(ys, e)
+            | None, Some(ys,e) -> Some(ys, e)
+            | _ -> None)
+        (M.of_list (List.map (fun (f,ys,e) -> (f,(ys,e))) fundefs1))
+        (M.of_list (List.map (fun (f,ys,e) -> (f,(ys,e))) fundefs2))
+    in List.map (fun (f,(ys,e)) -> (f,ys,e)) (M.to_list m)
 
-let empty_f (env : rTypeEnv) : (SimpleType.t, (rTypeEnv * string list * SeqSyntax.expr) list) M.t =
+let new_args = 
+    let num = ref 0 in 
+    fun xs -> List.map (fun _ -> "arg" ^ string_of_int (incr num; !num)) xs
+let empty_chenv chenv =
     (* ch-type \mapsto \epsilon  *)
-    List.fold_left 
-        (fun f el -> match el with Bind(_,(RCh(_) as t)) -> f + M.singleton (simple t) [] | _ -> f)
-        M.empty
-        env
-
-let substnondet yts e = 
-    List.fold_right
-        (fun (y,t) e -> match t with RInt(x,v) -> LetNonDet(y, Assume(subst_val (M.singleton x (Var(y))) v, e)) | RCh(_) -> e)
-        yts
-        e
-
-let delch bindings = List.map fst (List.filter (fun (_,t) -> match t with RInt(_) -> true | RCh(_) -> false) bindings)  (* RBool *)
-
-let of_type v env = 
-    match v with
-    | Var(x) -> 
-        (match find x env with   RCh(_) as t -> t 
-                               | RInt(_) -> let x = new_var () in RInt(x, Op(EQ, [Var(x); v])))
-    | _ -> let x = new_var () in RInt(x, Op(EQ, [Var(x); v]))
+    let img = M.fold_left (fun set _ t -> S.add t set) S.empty chenv in
+    S.fold_left (fun fundefs -> function RCh(yts,_,_,_,_,i) as t -> fundefs @ [(function_name t, new_args yts, Skip)] | _ -> assert false) [] img
     
-let rec trans env = function
-    | Nil -> Skip, empty_f env
-    | Nu(x,t,p) -> trans (add (Bind(x, t)) env) p
-    | In(_,yts,p) -> 
-        let e,f = trans (add_list yts env) p in
-        substnondet yts e, f
-    | RIn(x,yts,p) ->
-        let t = find x env in
-        let e,f = trans (add_list yts env) p in
-        Skip, (M.singleton (simple t) [(env, delch yts, e)]) + f
+let rec trans bienv chenv = function
+    | Nil -> (empty_chenv chenv, Skip)
+    | Nu(x,t,p) -> trans bienv (M.add x t chenv) p
+    | In(x,bindings,p) ->
+        (match type_of bienv chenv (Var(x)) with RCh(yts',vI,_,_,_,_) -> 
+        let (yts,zts) = List.partition (fun (_,t) -> is_bool_or_int t) bindings in
+        let (fdefs,e) = trans (M.add_list yts bienv) (M.add_list zts chenv) p in 
+        let sigma = M.of_list (List.map2 (fun (y',_) (y,_) -> (y', Var(y))) yts' yts) in  (* difference from simpletype *)
+        let vI = subst_val sigma vI in
+        (fdefs, List.fold_right (fun (y,_) e -> LetNonDet(y, e)) yts (Assume(vI, e)))  
+        | _ -> assert false)
+    | RIn(x,bindings,p) ->
+        let t = type_of bienv chenv (Var(x)) in
+        let (yts,zts) = List.partition (fun (_,t) -> is_bool_or_int t) bindings in
+        let (fdefs,e) = trans (M.add_list yts bienv) (M.add_list zts chenv) p in
+        ([(function_name t, List.map fst yts, e)] + fdefs, Skip)
     | Out(x,vs,p) ->
-        let t = find x env in
-        let vts = List.map (fun v -> (v, of_type v env)) vs in  (* value -> そのtypeを作る事 *)
-        let e,f = trans env p in
-        Choice(Call(function_name (simple t), delch vts), e), f
+        let t = type_of bienv chenv (Var(x)) in
+        let vs' = List.filter (fun v -> is_bool_or_int (type_of bienv chenv v)) vs in
+        let (fdefs,e) = trans bienv chenv p in
+        (fdefs, Choice(Call(function_name t, vs'), e))
     | Par(p1,p2) -> 
-        let e1,f1 = trans env p1 in
-        let e2,f2 = trans env p2 in
-        Choice(e1, e2), f1 + f2
+        let (fdefs1,e1) = trans bienv chenv p1 in
+        let (fdefs2,e2) = trans bienv chenv p2 in
+        (fdefs1 + fdefs2, Choice(e1, e2))
     | If(v,p1,p2) -> 
-        let e1,f1 = trans (add (Val(v)) env) p1 in
-        let e2,f2 = trans (add (Val(Op(NOT,[v]))) env) p2 in
-        If(v, e1, e2), f1 + f2
+        let (fdefs1,e1) = trans bienv chenv p1 in
+        let (fdefs2,e2) = trans bienv chenv p2 in
+        (fdefs1 + fdefs2, If(v, e1, e2))
         
 
-let close env e = 
+(* let close env e = 
     List.fold_right 
         (fun el e -> match el with   Bind(x,RInt(y,v)) -> LetNonDet(x, Assume(subst_val (M.singleton y (Var(x))) v, e)) 
                                    | Bind(x,RCh(_)) -> e
                                    | Val(v) -> Assume(v, e))
         env
-        e 
+        e  *)
 
-let num = ref 0
+(* let num = ref 0
 let makefunc (f : (SimpleType.t, (rTypeEnv * string list * SeqSyntax.expr) list) M.t) =
     M.fold_left
         (fun fundefs t l -> 
@@ -113,12 +116,20 @@ let makefunc (f : (SimpleType.t, (rTypeEnv * string list * SeqSyntax.expr) list)
         []
         f
 
-let makeprog (e,f) = (makefunc f, e)
+let makeprog (e,f) = (makefunc f, e) *)
+
+let close_expr ys e = 
+    let zs = S.diff (fv_expr e) (S.of_list ys) in
+    S.fold_right (fun z e -> LetNonDet(z, e)) zs e
+let close_fundef (f,ys,e) = (f, ys, close_expr ys e)
+let close_fundefs fundefs = List.map close_fundef fundefs
+let close_prog (fundefs,e) = (close_fundefs fundefs, close_expr [] e)
 
 
 let transform p = 
-    let e,f = trans !RefinementType.extenv p in
-    makeprog (e,f)
+    (* let e,f = trans !RefinementType.extenv p in
+    makeprog (e,f) *)
+    close_prog (trans !ext_bienv M.empty p)
 
 
     (* Bind, Val *)

@@ -124,7 +124,7 @@ let rec deref_t = function
         t
 
 let rec extract_t = function
-    | TBool -> SimpleType.SInt  (* 嫌 *)
+    | TBool -> SimpleType.SBool
     | TInt -> SimpleType.SInt
     | TCh(ts,R(i)) -> SimpleType.SCh(List.map extract_t ts, i)
     | _ -> assert false

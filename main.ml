@@ -19,6 +19,8 @@ let file filename =
     output_string logchan "\n****** simple type ******\n"; 
     PiSyntax.print_proc ~pp_print_t:SimpleType.pp_print_t logchan simpletyped_proc;
     let sorted_proc = Sort.sort simpletyped_proc in
+    output_string logchan "\n****** sorted ******\n"; 
+    PiSyntax.print_proc ~pp_print_t:SimpleType.pp_print_t logchan sorted_proc;
     if !simple_mode then (
         let simpletransformed_prog = SimpleTransform.transform sorted_proc in
         SeqSyntax.print_prog stdout simpletransformed_prog;
