@@ -44,6 +44,8 @@ definefun_list:
 definefun:
   LPAREN IDENT IDENT LPAREN ident_type_list RPAREN IDENT value RPAREN  /* arglist = [] */
     { ($3, ($5, $8)) }
+| LPAREN IDENT IDENT LPAREN RPAREN IDENT value RPAREN  /* arglist = [] */
+    { ($3, ([], $7)) }
 ;
 
 ident_type_list:
@@ -94,4 +96,6 @@ value:
     { Exists($4, $6) }    /* 本当にident_type_list, 相当まずい */
 | LPAREN IDENT value_list RPAREN
     { Unknown($2, $3) }
+| LPAREN IDENT RPAREN
+    { Unknown($2, []) }
 ;

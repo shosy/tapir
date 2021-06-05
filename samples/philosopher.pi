@@ -1,0 +1,11 @@
+new philos1 in new philos2 in new fork1 in new fork2 in
+  /** a left-handed philosopher, who picks the left fork first **/
+  *philos1?(left,right).
+      (left?w.right?w.(left!0 | right!0 | eating1!0 /* | philos1!(left,right) */ )) |
+  philos1!(fork1,fork2) |
+  /** a left-handed philosopher, who picks the right fork first **/
+  *philos2?(left,right).
+      (right?w.left?w.(left!0 | right!0 | eating2!0 /* | philos2!(left,right) */ )) |
+  philos2!(fork2,fork1) | 
+  /** forks **/
+  fork1!0 | fork2!0

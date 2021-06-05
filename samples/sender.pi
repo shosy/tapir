@@ -1,0 +1,3 @@
+new f in new g in
+*f?x | *g?x | *sender?r.r!f | *sender?r.r!g 
+| new r in sender!r.r?h.h!1

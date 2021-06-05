@@ -15,14 +15,16 @@ let add_list xts env = List.fold_left (fun env (x,t) -> add (Bind(x,t)) env) env
 
 
 
-
+let vars = ref M.empty    (* assert (forall (x ここの型を知りたい)) のため *)
 let predvars = ref M.empty
 
 
 let num = ref 0
-let new_var () =
+let new_var t =
     incr num;
-    "_v" ^ string_of_int !num
+    let ret = "_v" ^ string_of_int !num in
+    (* adhoc *) vars := M.add ret t !vars;
+    ret
 let new_predvar bienv =
     incr num;
     let phi = "_p" ^ string_of_int !num in
@@ -36,7 +38,7 @@ let rec new_t bienv = function
     | SimpleType.SInt -> RInt
     | SimpleType.SCh(ts,i) ->
         let ts1,ts2 = List.partition SimpleType.is_bool_or_int ts in
-        let yts = List.map (fun t -> (new_var (), new_t bienv t)) ts1 in
+        let yts = List.map (fun t -> let t' = new_t bienv t in (new_var t', t')) ts1 in
         let vI = new_predvar (M.add_list yts bienv) in
         let ts2I = List.map (new_t (M.add_list yts bienv)) ts2 in
         let vO = new_predvar (M.add_list yts bienv) in
@@ -105,6 +107,7 @@ let rec infer_proc bienv prenv chenv = function
                               (prenv @ [subst_val sigma vI]) 
                               (M.add_list (List.map2 (fun (z,_) t -> (z, subst_t sigma t)) zts tsI) chenv) 
                               p in
+        (* adhoc *) vars := M.add_list (List.map2 (fun (y,_) (_,t) -> (y,t)) yts yts') !vars;
         In(x, (List.map2 (fun (y,_) (_,t) -> (y,t)) yts yts') @ (List.map2 (fun (z,_) t -> (z, subst_t sigma t)) zts tsI), p'), c
         | _ -> assert false)
     | RIn(x,bindings,p) -> 
@@ -116,6 +119,7 @@ let rec infer_proc bienv prenv chenv = function
                               (prenv @ [subst_val sigma vI]) 
                               (M.add_list (List.map2 (fun (z,_) t -> (z, subst_t sigma t)) zts tsI) chenv) 
                               p in
+        (* adhoc *) vars := M.add_list (List.map2 (fun (y,_) (_,t) -> (y,t)) yts yts') !vars;
         RIn(x, (List.map2 (fun (y,_) (_,t) -> (y,t)) yts yts') @ (List.map2 (fun (z,_) t -> (z, subst_t sigma t)) zts tsI), p'), c
         | _ -> assert false)
     | Out(x,vs,p) -> 
@@ -149,6 +153,7 @@ let to_chc (prenv, v) =
 
 let typing p = 
     ext_bienv := M.map (new_t M.empty) !SimpleType.ext_bienv;
+    (* adhoc *) vars := !ext_bienv;
     let p',c = infer_proc !ext_bienv [] M.empty p in
     (p', List.map to_chc c)
     
@@ -211,9 +216,9 @@ let pp_print_declfun ppf (phi,ts) =  (* iだけじゃだめ、intじゃなくて
 
 let pp_print_assert ppf v = 
     let fv = S.to_list (fv_val v) in
-    let rec gen_list = function [] -> [] | x::xs -> (x, "Int") :: gen_list xs in
+    let rec gen_list = function [] -> [] | x::xs -> (x, M.find x !vars) :: gen_list xs in
     fprintf ppf "(@[assert (@[forall (%a)@ %a@])@])"
-        (pp_print_list ~left:"" ~right:"" ~delimiter:"" (pp_print_pair ~left:"(" ~right:")" ~delimiter:"" pp_print_string pp_print_string)) (gen_list fv)
+        (pp_print_list ~left:"" ~right:"" ~delimiter:"" (pp_print_pair ~left:"(" ~right:")" ~delimiter:"" pp_print_string pp_print_bi)) (gen_list fv)
         pp_print_val_for_smt2 v
 
 let pp_print_smt2 ppf chc =

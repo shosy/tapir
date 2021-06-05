@@ -1,0 +1,3 @@
+  *even?(n,r). if n=0 then r!true else odd!(n-1,r)
+| *odd?(n,r). if n=0 then r!false else even!(n-1,r)
+| new r in if n>=0 then even!(n,r) else O

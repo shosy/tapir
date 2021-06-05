@@ -1,0 +1,2 @@
+*small?(x,y,r). if x<=y then r!x else r!y
+| (new r1 in new r2 in small!(x1,x2,r1) | small!(x3,x4,r2) | r1?y1. r2?y2. small!(y1,y2,print))

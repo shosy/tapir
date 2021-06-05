@@ -1,0 +1,7 @@
+new s in
+  s!0 | 
+  *set?(ne,r). s?old. (s!ne | r!0) |
+  *read?r. s?x. (s!x | r!x) |
+*f?().
+  (new r in read!r | r?x. if x>=10 then O else (new rr in set!(x+1,rr) | rr?z2. f!())) |
+f!()

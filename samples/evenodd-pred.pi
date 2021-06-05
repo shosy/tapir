@@ -1,0 +1,4 @@
+  *pred?(n,r). r!(n-1)
+| *even?(n,r). if n=0 then r!true else (new rr in pred!(n,rr) | rr?m.odd!(m,r))
+| *odd?(n,r). if n=0 then r!false else (new rr in pred!(n,rr) | rr?m.even!(m,r))
+| new r in if n>=0 then even!(n,r) else O

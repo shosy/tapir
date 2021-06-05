@@ -1,0 +1,3 @@
+*loop?(). loop!()
+| *const?r. r!n 
+| new rr in (const!rr | rr?m. if m=n then O else loop!())

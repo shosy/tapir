@@ -90,7 +90,7 @@ let rec pp_print_val ppf v =
 *)
 
 let op_name = function  (* C用にしているがご愛顧 *)
-    | NOT -> "not"
+    | NOT -> "!"
     | AND -> "&&"
     | OR -> "||"
     | IMPLY -> failwith "IMPLY"  (* imply別にしても良さそう *)

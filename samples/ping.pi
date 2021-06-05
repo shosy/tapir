@@ -1,0 +1,7 @@
+  (*ping?r. r!0)
+| (new reply1 in ping!reply1 | reply1?x. print!x)
+| (new reply2 in ping!reply2 | reply2?x. print!x)
+| (new reply3 in ping!reply3 | reply3?x. print!x)
+| (new reply4 in ping!reply4 | reply4?x. print!x)
+| (new reply5 in ping!reply5 | reply5?x. print!x)
+| (new reply6 in ping!reply6 | reply6?x. print!x)

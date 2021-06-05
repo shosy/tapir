@@ -44,6 +44,8 @@ _opam/
 
 /UAutomizer-linux/data/
 /UAutomizer-linux/Ultimate.log
+/UAutomizer-linux/UltimateCounterExample.errorpath
+/UAutomizer-linux/witness.graphml
 
 *.log
 *.smt2
