@@ -217,9 +217,13 @@ let pp_print_declfun ppf (phi,ts) =  (* iだけじゃだめ、intじゃなくて
 let pp_print_assert ppf v = 
     let fv = S.to_list (fv_val v) in
     let rec gen_list = function [] -> [] | x::xs -> (x, M.find x !vars) :: gen_list xs in
+    (* if fv <> [] then *)
     fprintf ppf "(@[assert (@[forall (%a)@ %a@])@])"
         (pp_print_list ~left:"" ~right:"" ~delimiter:"" (pp_print_pair ~left:"(" ~right:")" ~delimiter:"" pp_print_string pp_print_bi)) (gen_list fv)
         pp_print_val_for_smt2 v
+    (* else
+    fprintf ppf "(@[assert @[%a@]@])"
+        pp_print_val_for_smt2 v *)
 
 let pp_print_smt2 ppf chc =
     fprintf ppf "@[<v 0>(set-logic HORN)@ %a@ %a@ (check-sat)@ (get-model)@]" 

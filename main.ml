@@ -42,9 +42,17 @@ let file filename =
         let _ = Sys.command ("hoice "^(filename^".smt2")^" > "^(filename^".hoice")) in
         let hoicechan = open_in (filename^".hoice") in
         let lexbuf = Lexing.from_channel hoicechan in
-        let parsed_model = ModelParser.toplevel ModelLexer.token lexbuf in
+        let parsed_hoice_model = ModelParser.toplevel ModelLexer.token lexbuf in
         close_in hoicechan;
-        let no_exists_model = ModelSyntax.del_exists parsed_model in
+        (* 
+        let _ = Sys.command ("z3 "^(filename^".smt2")^" > "^(filename^".z3")) in
+        let z3chan = open_in (filename^".z3") in
+        let lexbuf = Lexing.from_channel z3chan in
+        let parsed_z3_model = ModelParser.toplevel ModelLexer.token lexbuf in
+        close_in z3chan; 
+        *)
+
+        let no_exists_model = ModelSyntax.del_exists parsed_hoice_model in
         let completed = ModelSyntax.apply_prog no_exists_model refinementtransformed_prog in
         let cchan = open_out (filename^".c") in
         SeqSyntax.print_prog cchan completed;
