@@ -50,5 +50,6 @@ _opam/
 *.log
 *.smt2
 *.hoice
+*.z3
 *.c
 *.result

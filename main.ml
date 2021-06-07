@@ -1,4 +1,5 @@
 let simple_mode = ref false
+let z3_mode = ref false
 
 let file filename =
     (* if not (Filename.check_suffix filename ".pi") then failwith "kakuchoushi NOT .pi"; *)
@@ -39,21 +40,31 @@ let file filename =
         let smt2chan = open_out (filename^".smt2") in
         RefinementTyping.print_smt2 smt2chan chc;
         close_out smt2chan;
+        let model = 
+        if not !z3_mode then (
         let _ = Sys.command ("hoice "^(filename^".smt2")^" > "^(filename^".hoice")) in
         let hoicechan = open_in (filename^".hoice") in
         let lexbuf = Lexing.from_channel hoicechan in
         let parsed_hoice_model = ModelParser.toplevel ModelLexer.token lexbuf in
+        let hoicemodel = ModelSyntax.del_unknown (ModelSyntax.del_exists parsed_hoice_model) in
         close_in hoicechan;
-        (* 
+        hoicemodel
+        ) else (
+        let _ = Sys.command ("hoice "^(filename^".smt2")^" > "^(filename^".hoice")) in
+        let hoicechan = open_in (filename^".hoice") in
+        let lexbuf = Lexing.from_channel hoicechan in
+        let parsed_hoice_model = ModelParser.toplevel ModelLexer.token lexbuf in
+        let hoicemodel = ModelSyntax.del_unknown (ModelSyntax.del_exists parsed_hoice_model) in
+        close_in hoicechan;
         let _ = Sys.command ("z3 "^(filename^".smt2")^" > "^(filename^".z3")) in
         let z3chan = open_in (filename^".z3") in
         let lexbuf = Lexing.from_channel z3chan in
-        let parsed_z3_model = ModelParser.toplevel ModelLexer.token lexbuf in
-        close_in z3chan; 
-        *)
-
-        let no_exists_model = ModelSyntax.del_exists parsed_hoice_model in
-        let completed = ModelSyntax.apply_prog no_exists_model refinementtransformed_prog in
+        let parsed_z3_model = Z3Parser.toplevel Z3Lexer.token lexbuf in
+        let z3model = ModelSyntax.del_unknown (ModelSyntax.del_exists parsed_z3_model) in
+        close_in z3chan;
+        ModelSyntax.merge hoicemodel z3model
+        ) in
+        let completed = ModelSyntax.apply_prog model refinementtransformed_prog in
         let cchan = open_out (filename^".c") in
         SeqSyntax.print_prog cchan completed;
         close_out cchan;
@@ -75,13 +86,31 @@ let file filename =
                     let smt2chan = open_out (filename^".smt2") in
                     RefinementTyping.print_smt2 smt2chan !chc;
                     close_out smt2chan;
-                    let _ = Sys.command ("hoice "^(filename^".smt2")^" > "^(filename^".hoice")) in
-                    let hoicechan = open_in (filename^".hoice") in
-                    let lexbuf = Lexing.from_channel hoicechan in
-                    let parsed_hoice_model = ModelParser.toplevel ModelLexer.token lexbuf in
-                    close_in hoicechan;
-                    let no_exists_model = ModelSyntax.del_exists parsed_hoice_model in
-                    let completed = ModelSyntax.apply_prog no_exists_model refinementtransformed_prog in
+                    let model = 
+                        if not !z3_mode then (
+                        let _ = Sys.command ("hoice "^(filename^".smt2")^" > "^(filename^".hoice")) in
+                        let hoicechan = open_in (filename^".hoice") in
+                        let lexbuf = Lexing.from_channel hoicechan in
+                        let parsed_hoice_model = ModelParser.toplevel ModelLexer.token lexbuf in
+                        let hoicemodel = ModelSyntax.del_unknown (ModelSyntax.del_exists parsed_hoice_model) in
+                        close_in hoicechan;
+                        hoicemodel
+                        ) else (
+                        let _ = Sys.command ("hoice "^(filename^".smt2")^" > "^(filename^".hoice")) in
+                        let hoicechan = open_in (filename^".hoice") in
+                        let lexbuf = Lexing.from_channel hoicechan in
+                        let parsed_hoice_model = ModelParser.toplevel ModelLexer.token lexbuf in
+                        let hoicemodel = ModelSyntax.del_unknown (ModelSyntax.del_exists parsed_hoice_model) in
+                        close_in hoicechan;
+                        let _ = Sys.command ("z3 "^(filename^".smt2")^" > "^(filename^".z3")) in
+                        let z3chan = open_in (filename^".z3") in
+                        let lexbuf = Lexing.from_channel z3chan in
+                        let parsed_z3_model = Z3Parser.toplevel Z3Lexer.token lexbuf in
+                        let z3model = ModelSyntax.del_unknown (ModelSyntax.del_exists parsed_z3_model) in
+                        close_in z3chan;
+                        ModelSyntax.merge hoicemodel z3model
+                        ) in
+                    let completed = ModelSyntax.apply_prog model refinementtransformed_prog in
                     let cchan = open_out (filename^".c") in
                     SeqSyntax.print_prog cchan completed;
                     close_out cchan;
@@ -99,7 +128,8 @@ let file filename =
 let main () =
     let filenames = ref [] in
     Arg.parse 
-        [("-s", Arg.Set(simple_mode), "simple type-based transformation")] 
+        [("-s", Arg.Set(simple_mode), "simple type-based transformation");
+         ("-z3", Arg.Set(z3_mode), "Z3")] 
         (fun f -> filenames := !filenames @ [f]) 
         "Hello World!";
     let filename = 

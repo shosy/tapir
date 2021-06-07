@@ -53,4 +53,19 @@ let apply_prog definefuns (fundefs,e) =
 
 
 
-(* let  *)
+let del_unknown definefuns = 
+    List.fold_left (fun definefuns (phi,(xs,v)) -> definefuns @ [(phi, (xs, apply_val definefuns v))]) [] definefuns
+
+
+let merge definefuns1 definefuns2 = 
+    let definefuns1 = M.of_list definefuns1 in
+    let definefuns2 = M.of_list definefuns2 in
+    let m = M.merge 
+        (fun phi tmp1 tmp2 -> 
+            match tmp1, tmp2 with
+            | Some(xs1,v1), Some(xs2,v2) -> Some(xs1, Op(AND, [v1; subst_val (M.of_list (List.map2 (fun x1 x2 -> (x2, Var(x1))) xs1 xs2)) v2]))
+            | _ -> None)
+        definefuns1
+        definefuns2
+    in M.to_list m
+    

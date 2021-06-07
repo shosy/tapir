@@ -7,6 +7,7 @@ seqSyntax.mli seqSyntax.ml simpleTransform.mli simpleTransform.ml \
 refinementType.mli refinementType.ml refinementTyping.mli refinementTyping.ml \
 refinementTransform.mli refinementTransform.ml \
 modelSyntax.mli modelSyntax.ml modelParser.mly modelLexer.mll \
+z3Parser.mly z3Lexer.mll \
 addCHC.ml \
 main.ml
 
