@@ -1,42 +1,43 @@
-addsub	4.32
-apply	2.76
-broadcast   3.31
-btree   UNKNOWN
-const	2.96
-deadlock	2.94
-deadlock2	2.82
-deadlock3	UNKNOWN
-ds-ex5-1	UNKNOWN
-ds-ex5-2	3.19
-evenodd-pred	10.07
-evenodd	7.55
-fact-pred	4.04
-fact-pred2	11.15
-fact	4.42
-factz	12.60
-fib-pred	28.20
-fib	4.43
-ks-ex2-1    UNKNOWN
-ks-ex2-2    UNKNOWN 
-ks-ex3-3	2.69
-lift1	2.68
-lift2	UNKNOWN
-lock    4.10
-lock2   UNKNOWN
-nil 2.43
-parallel-or 2.96
-philosopher 2.96
-ping    3.21
-pred-double 6.84
-sender  2.63
-simple1	2.64
-simple2	2.65
-simple3	2.68
-simple4	2.59
-simple5	2.69
-simple6	2.87
-simple7	2.68
-simple8	2.63
-smallest4	3.25
-stable	UNKNOWN
-state	UNKNOWN
+testcase    simple  refinement
+addsub	4.49    4.32
+apply	2.86    2.76
+broadcast   3.59    3.31
+btree   UNKNOWN UNKNOWN
+const	UNKNOWN  2.96
+deadlock	UNKNOWN 2.94
+deadlock2	UNKNOWN 2.82
+deadlock3	UNKNOWN UNKNOWN
+ds-ex5-1	UNKNOWN UNKNOWN
+ds-ex5-2	3.28    3.19
+evenodd-pred	UNKNOWN 10.07
+evenodd	7.02    7.55
+fact-pred	UNKNOWN 4.04
+fact-pred2	UNKNOWN 11.15
+fact	3.91    4.42
+factz	8.06    12.60
+fib-pred	UNKNOWN 28.20
+fib	4.84    4.43
+ks-ex2-1    UNKNOWN UNKNOWN
+ks-ex2-2    UNKNOWN UNKNOWN 
+ks-ex3-3	2.49    2.69
+lift1	2.74    2.68
+lift2	UNKNOWN UNKNOWN
+lock    4.34    4.10
+lock2   UNKNOWN UNKNOWN
+nil 2.45    2.43
+parallel-or 2.93    2.96
+philosopher 3.20    2.96
+ping    3.20    3.21
+pred-double UNKNOWN 6.84
+sender  3.11    2.63
+simple1	2.62    2.64
+simple2	2.54    2.65
+simple3	2.75    2.68
+simple4	2.71    2.59
+simple5	2.50    2.69
+simple6	2.67    2.87
+simple7	2.97    2.68
+simple8	2.58    2.63
+smallest4	2.81    3.25
+stable	UNKNOWN UNKNOWN
+state	UNKNOWN UNKNOWN
