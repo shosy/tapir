@@ -1,0 +1,14 @@
+/*** Sample program for deadlock analysis ***/
+/*** The server *bcast?l... sends messages to all the channels in l ***/
+
+  (*bcast3?(c1,c2,c3). (c1!() | c1!() | bcast2!(c2,c3)))
+| (*bcast2?(c1,c2).    (c1!() | c1!() | bcast1!(c2)))
+| (*bcast1?c1.         (c1!() | c1!() | bcast0!()))    /* bcast1?(c1) -> parse error */
+| (*bcast0?(). O)
+
+| (*rec3?(c1,c2,c3). (c1?() | rec2!(c2,c3)))
+| (*rec2?(c1,c2).    (c1?() | rec1!(c2)))
+| (*rec1?c1.         (c1?() | rec0!()))
+| (*rec0?(). O)
+
+| new c1 in new c2 in new c3 in (rec3!(c1,c2,c3) | bcast3!(c1,c2,c3) | c1?() | c2?() | c3?())

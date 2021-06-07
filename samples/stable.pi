@@ -13,10 +13,10 @@
          (r!(n+1) | 
           (new c in new dummy in 
              (p!(c,dummy,n+1,t,true) | p!(a,c,n,s,false) |
-              *dummy?(_, r).r!0)))/*** A dummy process to respond to any request immediately.
+              *dummy?(underbar, r).r!0)))/*** A dummy process to respond to any request immediately.
                                       Actually, it is never called.***/
       else (b!(t,r) | p!(a,b,n,s,false)))
-| (new dummy in (p!(a,dummy,1,s0,true) | *dummy?(_, r).r!0))
+| (new dummy in (p!(a,dummy,1,s0,true) | *dummy?(underbar, r).r!0))
 )
 | a!(1,r1) 
 | a!(2,r2)

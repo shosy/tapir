@@ -1,0 +1,4 @@
+*fib?(n,r). 
+    if n<2 then r!1 
+    else (new s1 in new s2 in fib!(n-1,s1) | fib!(n-2,s2) | s1?x. s2?y. r!x+y)
+| new r in fib!(m,r)

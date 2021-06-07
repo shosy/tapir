@@ -1,0 +1,9 @@
+*pred?(n,r). r!n-1
+| *fib?(n,r). 
+    if n<2 then r!1 
+    else (new t1 in new t2 in new s1 in new s2 in 
+          pred!(n,t1) 
+          | t1?n1. (fib!(n1,s1) | pred!(n1,t2)) 
+          | t2?n2. fib!(n2,s2) 
+          | s1?x. s2?y. r!x+y)
+| new r in fib!(m,r)

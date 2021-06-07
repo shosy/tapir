@@ -41,6 +41,10 @@ _opam/
 /modelParser.ml
 /modelParser.output
 /modelLexer.ml
+/z3Parser.mli
+/z3Parser.ml
+/z3Parser.output
+/z3Lexer.ml
 
 /UAutomizer-linux/data/
 /UAutomizer-linux/Ultimate.log
