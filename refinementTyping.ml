@@ -216,7 +216,9 @@ let pp_print_declfun ppf (phi,ts) =  (* iだけじゃだめ、intじゃなくて
 
 let pp_print_assert ppf v = 
     let fv = S.to_list (fv_val v) in
-    let rec gen_list = function [] -> [] | x::xs -> (x, M.find x !vars) :: gen_list xs in
+    let rec gen_list = function [] -> [] | x::xs -> 
+        (try (x, M.find x !vars) :: gen_list xs with Not_found -> 
+             (x, RInt)           :: gen_list xs) in    (* 嘘、後で直すこと。boolなら失敗 *)
     (* if fv <> [] then *)
     fprintf ppf "(@[assert (@[forall (%a)@ %a@])@])"
         (pp_print_list ~left:"" ~right:"" ~delimiter:"" (pp_print_pair ~left:"(" ~right:")" ~delimiter:"" pp_print_string pp_print_bi)) (gen_list fv)

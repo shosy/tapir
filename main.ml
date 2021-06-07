@@ -58,7 +58,40 @@ let file filename =
         SeqSyntax.print_prog cchan completed;
         close_out cchan;
         let _ = Sys.command ("cd UAutomizer-linux/; ./Ultimate.py --spec ../PropertyTermination.prp --file "^("../"^filename^".c")^" --architecture 64bit > "^("../"^filename^".result")^"; cd ../") in
-        ()
+        let chc = ref chc in
+        let ic = open_in (filename^".result") in
+        let rec f () = 
+            try 
+                let line = input_line ic in
+                if line = "TRUE" then print_string "TERMINATE!\n"
+                else f ()
+            with End_of_file -> 
+                (
+                try
+                    let addchc = AddCHC.main refinementtransformed_prog in
+                    PiSyntax.print_val stdout addchc;
+                    (* RefinementTyping.print_smt2 stdout [addchc]; *)
+                    chc := !chc @ [addchc];
+                    let smt2chan = open_out (filename^".smt2") in
+                    RefinementTyping.print_smt2 smt2chan !chc;
+                    close_out smt2chan;
+                    let _ = Sys.command ("hoice "^(filename^".smt2")^" > "^(filename^".hoice")) in
+                    let hoicechan = open_in (filename^".hoice") in
+                    let lexbuf = Lexing.from_channel hoicechan in
+                    let parsed_hoice_model = ModelParser.toplevel ModelLexer.token lexbuf in
+                    close_in hoicechan;
+                    let no_exists_model = ModelSyntax.del_exists parsed_hoice_model in
+                    let completed = ModelSyntax.apply_prog no_exists_model refinementtransformed_prog in
+                    let cchan = open_out (filename^".c") in
+                    SeqSyntax.print_prog cchan completed;
+                    close_out cchan;
+                    let _ = Sys.command ("cd UAutomizer-linux/; ./Ultimate.py --spec ../PropertyTermination.prp --file "^("../"^filename^".c")^" --architecture 64bit > "^("../"^filename^".result")^"; cd ../") in
+                    f ()
+                with _ ->  
+                    print_string "UNKNOWN\n"
+                )
+        in f();
+        close_in ic
     )
 
 
@@ -75,11 +108,11 @@ let main () =
         | [] -> failwith "input one file"
         | _ -> failwith "input only one file"
     in 
-    let start_t = Sys.time () in
-    file filename;
-    let end_t = Sys.time () in
-    print_float (end_t -. start_t);
-    print_newline ()
+    (* let start_t = Sys.time () in *)
+    file filename
+    (* let end_t = Sys.time () in *)
+    (* print_float (end_t -. start_t); *)
+    (* print_newline () *)
 
 let _ =
     main ()

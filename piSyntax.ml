@@ -93,7 +93,7 @@ let op_name = function  (* C用にしているがご愛顧 *)
     | NOT -> "!"
     | AND -> "&&"
     | OR -> "||"
-    | IMPLY -> failwith "IMPLY"  (* imply別にしても良さそう *)
+    | IMPLY -> "IMPLY"  (* imply別にしても良さそう *)
     | EQ -> "=="
     | LT -> "<"
     | GT -> ">"
@@ -133,6 +133,10 @@ let rec pp_print_val ppf = function
         fprintf ppf "(@[%s@ %a@])" phi (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_val) vs
     | Exists(xs,v) -> 
         fprintf ppf "(@[exists %a@ %a@])" (pp_print_list ~left:"(" ~right:")" ~delimiter:"" pp_print_string) xs pp_print_val v
+
+let print_val oc v = 
+    fprintf (formatter_of_out_channel oc) "%a@." pp_print_val v
+
 
 let prec_nu = 1
 let prec_par = 2

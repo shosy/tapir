@@ -1,3 +1,5 @@
+/* z3 necessary */
+
   *pred?(n,r).
     if n <= 1 then r!(n-1) 
     else (new rr in pred!(n-1,rr) | rr?m.r!(m+1))

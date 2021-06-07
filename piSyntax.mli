@@ -25,6 +25,7 @@ type 'a proc =
 val pp_print_val : Format.formatter -> value -> unit
 val pp_print_proc : ?pp_print_t:(Format.formatter -> 'a -> unit) -> Format.formatter -> 'a proc -> unit
 
+val print_val : out_channel -> value -> unit
 val print_proc : ?pp_print_t:(Format.formatter -> 'a -> unit) -> out_channel -> 'a proc -> unit
 
 val subst_val : (string, value) M.t -> value -> value
