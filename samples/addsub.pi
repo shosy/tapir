@@ -1,4 +1,4 @@
 new add in new sub in
-*add?n. if n > 10 then O else add!(n+1)
-| *sub?n. if n < 0 then O else sub!(n-1)
+*add?n. if n >= 10 then O else add!(n+1)
+| *sub?n. if n <= 0 then O else sub!(n-1)
 | (add!n | sub!n)
