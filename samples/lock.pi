@@ -1,8 +1,7 @@
-new s in
-  s!0 | 
-  *set?(ne,r). s?old. (s!ne | r!0) |
-  *read?r. s?x. (s!x | r!x) |
-*f?z. lock?().
-  (new r in read!r | r?x. new rr in set!(x+1,rr) | rr?z3. lock!()) |
-f!0 | f!0 | f!0 | f!0 | f!0 | f!0 |
-lock!()
+new secret in new lockx in
+  (new cont in
+    secret?b.(secret!b | if b then lockx?().(lockx!() | cont!()) else O) | 
+    cont?().public!true) |
+  lockx?().locky?().(lockx!() | locky!()) |
+  lockx!() |
+  secret!true
