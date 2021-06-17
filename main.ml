@@ -91,6 +91,7 @@ let file filename =
             with End_of_file -> 
                 (
                 try
+                    let flag = ref true in
                     let addchc = AddCHC.main refinementtransformed_prog in
                     PiSyntax.print_val stdout addchc;
                     (* RefinementTyping.print_smt2 stdout [addchc]; *)
@@ -102,11 +103,23 @@ let file filename =
                         if not !z3_mode then (
                         let _ = Sys.command ("hoice "^(filename^".smt2")^" > "^(filename^".hoice")) in
                         let hoicechan = open_in (filename^".hoice") in
+                        (try
                         let lexbuf = Lexing.from_channel hoicechan in
                         let parsed_hoice_model = ModelParser.toplevel ModelLexer.token lexbuf in
                         let hoicemodel = ModelSyntax.del_unknown (ModelSyntax.del_exists parsed_hoice_model) in
                         close_in hoicechan;
                         hoicemodel
+                        with _ -> (* unsat, unknown *)
+                            let rec del_last = function
+                                | [] -> []
+                                | [x] -> []
+                                | x::xs -> x::del_last xs
+                            in
+                            print_string "unsat or unknown\n";
+                            chc := del_last !chc;
+                            flag := false;
+                            []
+                        )
                         ) else (
                         let _ = Sys.command ("hoice "^(filename^".smt2")^" > "^(filename^".hoice")) in
                         let hoicechan = open_in (filename^".hoice") in
@@ -122,11 +135,15 @@ let file filename =
                         close_in z3chan;
                         ModelSyntax.merge hoicemodel z3model
                         ) in
+                    if !flag then (
                     let completed = ModelSyntax.apply_prog model refinementtransformed_prog in
                     let cchan = open_out (filename^".c") in
                     SeqSyntax.print_prog cchan completed;
                     close_out cchan;
                     let _ = Sys.command ("cd UAutomizer-linux/; ./Ultimate.py --spec ../PropertyTermination.prp --file "^("../"^filename^".c")^" --architecture 64bit > "^("../"^filename^".result")^"; cd ../") in
+                    f () 
+                    )
+                    else
                     f ()
                 with _ ->  
                     print_string "UNKNOWN\n"
