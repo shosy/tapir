@@ -1,2 +1,2 @@
 *loop?(). loop!()
-| r?y. loop!()
+| r?(). loop!()
