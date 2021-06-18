@@ -1,0 +1,8 @@
+fact?(n,r).
+    (*factaux?(n,r,acc).
+        if n<=0 then 
+            r!acc
+        else
+            factaux!(n-1,r,acc*n)
+    | factaux!(n,r,1))
+| new r in fact!(m,r)
