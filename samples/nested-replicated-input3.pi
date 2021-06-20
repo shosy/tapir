@@ -1,0 +1,5 @@
+*f?(x,r).
+    (*g?(y,z).
+        if y <= 0 then r!z
+        else g!(y-1, z+x))
+| new r in f!(n1, r). g!(n2, n3)
