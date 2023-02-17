@@ -22,9 +22,9 @@ type prog = fundefs * expr
 val fv_expr : expr -> string S.t
 
 
-val pp_print_prog : Format.formatter -> prog -> unit
+(* val pp_print_prog : Format.formatter -> prog -> unit *)
 
-val print_prog : out_channel -> prog -> unit
+val print_prog : prog -> unit
 
 
 val subst_expr : (string, value) M.t -> expr -> expr

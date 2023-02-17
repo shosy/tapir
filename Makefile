@@ -14,6 +14,7 @@ SOURCES = utilities.mli utilities.ml s.mli s.ml m.mli m.ml \
 piSyntax.mli piSyntax.ml piParser.ml piLexer.ml \
 alphaconv.mli alphaconv.ml \
 simpleType.mli simpleType.ml simpleTyping.mli simpleTyping.ml \
+reg.ml \
 seqSyntax.mli seqSyntax.ml simpleTransform.mli simpleTransform.ml \
 main.ml
 

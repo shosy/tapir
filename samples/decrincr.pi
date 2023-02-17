@@ -1,0 +1,4 @@
+  *decr?n. if n<0 then O else decr!(n-1)
+| *incr?n. if n>0 then O else incr!(n+1)
+| *applyzero?f. f!0
+| applyzero!decr | applyzero!incr

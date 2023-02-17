@@ -2,6 +2,11 @@ open PiSyntax
 open SimpleType
 open SeqSyntax
 
+let is_bool_int_or_chstar = function
+    | SCh(_,i) when i >= 0 -> false
+    | _ -> true
+
+
 let function_name = function
     | SCh(_,i) -> "function" ^ string_of_int i
     | _ -> assert false
@@ -25,7 +30,7 @@ let new_args =
 let empty_chenv (chenv : (string, SimpleType.t) M.t) =
     (* ch-type \mapsto \epsilon  *)
     let img = M.fold_left (fun set _ t -> S.add t set) S.empty chenv in
-    S.fold_left (fun fundefs -> function SCh(ts,i) as t -> fundefs @ [(function_name t, new_args (List.filter is_bool_or_int ts), Skip)] | _ -> assert false) [] img
+    S.fold_left (fun fundefs -> function SCh(ts,i) as t when i>=0 -> fundefs @ [(function_name t, new_args (List.filter is_bool_int_or_chstar ts), Skip)] | _ -> assert false) [] img
 
 let rec trans bienv chenv = function
     | Nil -> (empty_chenv chenv, Skip)
@@ -36,14 +41,19 @@ let rec trans bienv chenv = function
         (fundefs, List.fold_right (fun (y,_) e -> LetNonDet(y, e)) yts e)
     | RIn(x,bindings,p) -> 
         let t = type_of bienv chenv (Var(x)) in
-        let (yts,zts) = List.partition (fun (_,t) -> is_bool_or_int t) bindings in
+        let (yts,zts) = List.partition (fun (_,t) -> is_bool_int_or_chstar t) bindings in
         let (fundefs,e) = trans (M.add_list yts bienv) (M.add_list zts chenv) p in
         ([(function_name t, List.map fst yts, e)] + fundefs, Skip)
     | Out(x,vs,p) -> 
         let t = type_of bienv chenv (Var(x)) in
-        let vs' = List.filter (fun v -> is_bool_or_int (type_of bienv chenv v)) vs in
-        let (fundefs,e) = trans bienv chenv p in
-        (fundefs, Choice(Call(function_name t, vs'), e))
+        if is_bool_int_or_chstar t then
+            let vs' = List.filter (fun v -> is_bool_int_or_chstar (type_of bienv chenv v)) vs in
+            let (fundefs,e) = trans bienv chenv p in
+            (fundefs, Choice(Call(x, vs'), e))
+        else
+            let vs' = List.filter (fun v -> is_bool_int_or_chstar (type_of bienv chenv v)) vs in
+            let (fundefs,e) = trans bienv chenv p in
+            (fundefs, Choice(Call(function_name t, vs'), e))
     | Par(p1,p2) -> 
         let (fundefs1,e1) = trans bienv chenv p1 in
         let (fundefs2,e2) = trans bienv chenv p2 in

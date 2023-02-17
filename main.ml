@@ -22,13 +22,17 @@ let file filename =
     (* let sorted_proc = Sort.sort simpletyped_proc in
     output_string logchan "\n****** sorted ******\n"; 
     PiSyntax.print_proc ~pp_print_t:SimpleType.pp_print_t logchan sorted_proc; *)
+    let reg_proc = Reg.infer simpletyped_proc in
+    (* Format.pp_print_string (Format.formatter_of_out_channel logchan) "****** simple type ******\n";  *)
+    output_string logchan "\n****** reg ******\n"; 
+    PiSyntax.print_proc ~pp_print_t:SimpleType.pp_print_t logchan reg_proc;
     (* if !simple_mode then ( *)
-        let simpletransformed_prog = SimpleTransform.transform simpletyped_proc in
+        let simpletransformed_prog = SimpleTransform.transform reg_proc in
         (* let simpletransformed_prog = SimpleTransform.transform sorted_proc in *)
         (* SeqSyntax.print_prog stdout simpletransformed_prog; *)
-        let mlchan = open_out (filename^".simple.ml") in
-        SeqSyntax.print_prog mlchan simpletransformed_prog;
-        close_out mlchan
+        (* let mlchan = open_out (filename^".simple.ml") in *)
+        SeqSyntax.print_prog simpletransformed_prog
+        (* close_out mlchan *)
         (* let _ = Sys.command ("cd UAutomizer-linux/; ./Ultimate.py --spec ../PropertyTermination.prp --file "^("../"^filename^".simple.c")^" --architecture 64bit > "^("../"^filename^".simple.result")^"; cd ../") in
         (* close_out outchan *)
         let ic = open_in (filename^".simple.result") in

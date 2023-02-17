@@ -57,3 +57,4 @@ _opam/
 *.z3
 *.c
 *.result
+/samples/*.ml

@@ -48,20 +48,47 @@ open PiSyntax
 
 (* 以下はC用に!!!! *)
 
-let nondet = "nondet()"
+let nondetint = "Random.int 0"
+let nondetbool = "Random.bool ()"
 
-let rec pp_print_expr ppf = function
-    | Skip -> pp_print_string ppf "return 0;"
+let rec print_expr = function
+    | Skip -> print_string "()"
     | Let(x,v,e) -> 
-        fprintf ppf "@[<v 0>int %s = %a;@ %a@]" x pp_print_val v pp_print_expr e 
+        print_string "let ";
+        print_string x;
+        print_string " = ";
+        print_val stdout v;
+        print_string " in ";
+        print_expr e 
     | LetNonDet(x,e) ->
-        fprintf ppf "@[<v 0>int %s = %s;@ %a@]" x nondet pp_print_expr e 
+        print_string "let ";
+        print_string x;
+        print_string " = ";
+        print_string "Random.int 0";
+        print_string " in ";
+        print_expr e 
     | Call(x,vs) ->
-        fprintf ppf "@[<h 0>%s%a;@]" x (pp_print_list pp_print_val) vs
+        print_string x;
+        print_string " ";
+        List.iter (
+            fun v -> print_val stdout v
+        ) vs
     | Choice(e1,e2) -> 
-        fprintf ppf "@[<v 0>if (%s) {@;<1 4>%a@ } else {@;<1 4>%a@ }@]" nondet pp_print_expr e1 pp_print_expr e2
+        print_string "if ";
+        print_string "Random.bool ()";
+        print_string " then (\n";
+        print_expr e1;
+        print_string ") else (\n";
+        print_expr e2;
+        print_string "\n"
     | If(v,e1,e2) -> 
-        fprintf ppf "@[<v 0>if (%a) {@;<1 4>%a@ } else {@;<1 4>%a@ }@]" pp_print_val v pp_print_expr e1 pp_print_expr e2
+        print_string "if ";
+        print_val stdout v;
+        print_string " then (\n";
+        print_expr e1;
+        print_string ") else (\n";
+        print_expr e2;
+        print_string "\n"
 (* value @[<h 0>]を指定 *)
 (* valueのpred *)
 
@@ -71,19 +98,41 @@ let add_int xs = List.map (fun x -> ("int", x)) xs
 let pp_print_prototype_fundecl ppf (f,ys,_) =
     fprintf ppf "@[int %s%a;@]" f (pp_print_list (pp_print_pair ~left:"" ~right:"" ~delimiter:"" pp_print_string pp_print_string)) (add_int ys)
 
-let pp_print_fundef ppf (f,ys,e) =
-    fprintf ppf "@[int %s%a {@  %a@ }@]" f (pp_print_list (pp_print_pair ~left:"" ~right:"" ~delimiter:"" pp_print_string pp_print_string)) (add_int ys) pp_print_expr e
+let print_first_fundef (f,ys,e) =
+    print_string "let rec ";
+    print_string f;
+    print_string " ";
+    List.iter (
+        fun y -> print_string y; print_string " "
+    ) ys;
+    print_string " = ";
+    print_expr e
 
-let pp_print_mainfundef ppf e =
-    fprintf ppf "@[int main() {@ %a@ }@]" pp_print_expr (close_main e) 
+let print_rest_fundef (f,ys,e) =
+    print_string "and ";
+    print_string f;
+    print_string " ";
+    List.iter (
+        fun y -> print_string y; print_string " "
+    ) ys;
+    print_string "= ";
+    print_expr e
 
-let pp_print_prog ppf (fundefs,e) =
-    fprintf ppf "@[#define true 1\n#define false 0\nint nondet() { int n; return n; }@ %a@ %a@ %a@]" 
-        (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_prototype_fundecl) fundefs
-        (pp_print_list ~left:"" ~right:"" ~delimiter:"" pp_print_fundef) fundefs 
-        pp_print_mainfundef e
+let print_fundefs fundefs = 
+    match fundefs with
+    | [] -> ()
+    | [fundef] -> 
+        print_first_fundef fundef;
+        print_string " in\n"
+    | fundef::rest ->
+        print_first_fundef fundef;
+        List.iter print_rest_fundef rest;
+        print_string " in\n"
 
-let print_prog oc prog = fprintf (formatter_of_out_channel oc) "%a@." pp_print_prog prog
+let print_prog (fundefs,e) =
+    print_fundefs fundefs;
+    print_expr e
+
 
 
 let rec subst_expr map = function
