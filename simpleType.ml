@@ -56,5 +56,3 @@ let type_of bienv chenv = function
     | Int(_) -> SInt
     | Op(NOT,_) | Op(AND,_) | Op(OR,_) | Op(IMPLY,_) | Op(EQ,_) | Op(LT,_) | Op(GT,_) | Op(LE,_) | Op(GE,_) -> SBool
     | Op(MINUS,_) | Op(ADD,_) | Op(SUB,_) | Op(MUL,_) | Op(DIV,_) -> SInt
-    | Unknown(_) -> SBool
-    | Exists(_) -> SBool

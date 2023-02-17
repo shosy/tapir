@@ -8,7 +8,6 @@ type expr =
     | Call of string * value list
     | Choice of expr * expr
     | If of value * expr * expr
-    | Assume of value * expr
 
 (** syntax of function definitions **)
 type fundef = string * string list * expr

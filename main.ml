@@ -19,16 +19,17 @@ let file filename =
     (* Format.pp_print_string (Format.formatter_of_out_channel logchan) "****** simple type ******\n";  *)
     output_string logchan "\n****** simple type ******\n"; 
     PiSyntax.print_proc ~pp_print_t:SimpleType.pp_print_t logchan simpletyped_proc;
-    let sorted_proc = Sort.sort simpletyped_proc in
+    (* let sorted_proc = Sort.sort simpletyped_proc in
     output_string logchan "\n****** sorted ******\n"; 
-    PiSyntax.print_proc ~pp_print_t:SimpleType.pp_print_t logchan sorted_proc;
-    if !simple_mode then (
-        let simpletransformed_prog = SimpleTransform.transform sorted_proc in
+    PiSyntax.print_proc ~pp_print_t:SimpleType.pp_print_t logchan sorted_proc; *)
+    (* if !simple_mode then ( *)
+        let simpletransformed_prog = SimpleTransform.transform simpletyped_proc in
+        (* let simpletransformed_prog = SimpleTransform.transform sorted_proc in *)
         (* SeqSyntax.print_prog stdout simpletransformed_prog; *)
-        let cchan = open_out (filename^".simple.c") in
-        SeqSyntax.print_prog cchan simpletransformed_prog;
-        close_out cchan;
-        let _ = Sys.command ("cd UAutomizer-linux/; ./Ultimate.py --spec ../PropertyTermination.prp --file "^("../"^filename^".simple.c")^" --architecture 64bit > "^("../"^filename^".simple.result")^"; cd ../") in
+        let mlchan = open_out (filename^".simple.ml") in
+        SeqSyntax.print_prog mlchan simpletransformed_prog;
+        close_out mlchan
+        (* let _ = Sys.command ("cd UAutomizer-linux/; ./Ultimate.py --spec ../PropertyTermination.prp --file "^("../"^filename^".simple.c")^" --architecture 64bit > "^("../"^filename^".simple.result")^"; cd ../") in
         (* close_out outchan *)
         let ic = open_in (filename^".simple.result") in
         let rec f () = 
@@ -38,8 +39,8 @@ let file filename =
                 else f ()
             with End_of_file -> print_string "UNKNOWN\n"
         in f();
-        close_in ic
-    ) else (
+        close_in ic *)
+    (* ) else (
         let (refinementtyped_proc, chc) = RefinementTyping.typing sorted_proc in
         (* Format.pp_print_string (Format.formatter_of_out_channel logchan) "****** refinement type ******\n";  *)
         output_string logchan "\n****** refinement type ******\n"; 
@@ -150,7 +151,7 @@ let file filename =
                 )
         in f();
         close_in ic
-    )
+    ) *)
 
 
 

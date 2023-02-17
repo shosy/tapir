@@ -20,7 +20,6 @@ let rec alpha_val map = function
     | Bool(b) -> Bool(b)
     | Int(i) -> Int(i)
     | Op(op,vs) -> Op(op, List.map (alpha_val map) vs)
-    | Unknown(p,vs) -> Unknown(p, List.map (alpha_val map) vs)
 
 let rec alpha_proc map = function
     | Nil -> Nil

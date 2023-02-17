@@ -71,7 +71,6 @@ let rec infer_val env = function
         let ts, t = List.assoc op op_table in
         List.iter2 (fun v t -> unify_t (infer_val env v) t) vs ts;
         t      
-    | Unknown(_) -> assert false  
     
 let rec infer_proc env = function
     | Nil -> Nil

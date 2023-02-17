@@ -7,8 +7,6 @@ type value =
     | Bool of bool
     | Int of int
     | Op of op * value list
-    | Unknown of string * value list
-    | Exists of string list * value
 
 (** syntax of processes **)
 (** the parameter 'a denotes the type of type expressions for bound variables **)
