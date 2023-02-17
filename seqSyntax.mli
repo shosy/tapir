@@ -29,3 +29,5 @@ val print_prog : prog -> unit
 
 val subst_expr : (string, value) M.t -> expr -> expr
                           (* val *)
+
+val simplify_prog : prog -> prog

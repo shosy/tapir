@@ -49,11 +49,11 @@ let rec trans bienv chenv = function
         if is_bool_int_or_chstar t then
             let vs' = List.filter (fun v -> is_bool_int_or_chstar (type_of bienv chenv v)) vs in
             let (fundefs,e) = trans bienv chenv p in
-            (fundefs, Choice(Call(x, vs'), e))
+            (fundefs, Choice(Call(x, vs), e))  (* 臨時 *)
         else
             let vs' = List.filter (fun v -> is_bool_int_or_chstar (type_of bienv chenv v)) vs in
             let (fundefs,e) = trans bienv chenv p in
-            (fundefs, Choice(Call(function_name t, vs'), e))
+            (fundefs, Choice(Call(function_name t, vs), e))  (* 臨時 *)
     | Par(p1,p2) -> 
         let (fundefs1,e1) = trans bienv chenv p1 in
         let (fundefs2,e2) = trans bienv chenv p2 in
@@ -73,4 +73,7 @@ let close_prog (fundefs,e) = (close_fundefs fundefs, close_expr [] e)
 
 
 let transform p = 
-    close_prog (trans !ext_bienv M.empty p)
+    simplify_prog 
+    (* (close_prog  *)
+    (trans !ext_bienv M.empty p)
+    (* ) *)

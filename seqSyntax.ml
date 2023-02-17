@@ -57,6 +57,7 @@ let rec print_expr = function
         print_string "let ";
         print_string x;
         print_string " = ";
+        print_newline ();
         print_val stdout v;
         print_string " in ";
         print_expr e 
@@ -70,9 +71,7 @@ let rec print_expr = function
     | Call(x,vs) ->
         print_string x;
         print_string " ";
-        List.iter (
-            fun v -> print_val stdout v
-        ) vs
+        if vs = [] then print_string "()" else List.iter (fun v -> print_newline (); print_val stdout v; print_string " ") vs
     | Choice(e1,e2) -> 
         print_string "if ";
         print_string "Random.bool ()";
@@ -80,15 +79,16 @@ let rec print_expr = function
         print_expr e1;
         print_string ") else (\n";
         print_expr e2;
-        print_string "\n"
+        print_string ")\n"
     | If(v,e1,e2) -> 
         print_string "if ";
+        print_newline ();
         print_val stdout v;
         print_string " then (\n";
         print_expr e1;
         print_string ") else (\n";
         print_expr e2;
-        print_string "\n"
+        print_string ")\n"
 (* value @[<h 0>]を指定 *)
 (* valueのpred *)
 
@@ -102,19 +102,15 @@ let print_first_fundef (f,ys,e) =
     print_string "let rec ";
     print_string f;
     print_string " ";
-    List.iter (
-        fun y -> print_string y; print_string " "
-    ) ys;
-    print_string " = ";
+    if ys = [] then print_string "() " else List.iter (fun y -> print_string y; print_string " ") ys;
+    print_string "= ";
     print_expr e
 
 let print_rest_fundef (f,ys,e) =
     print_string "and ";
     print_string f;
     print_string " ";
-    List.iter (
-        fun y -> print_string y; print_string " "
-    ) ys;
+    if ys = [] then print_string "() " else List.iter (fun y -> print_string y; print_string " ") ys;
     print_string "= ";
     print_expr e
 
@@ -134,11 +130,31 @@ let print_prog (fundefs,e) =
     print_expr e
 
 
-
+let substf map f = 
+    try 
+        (match M.find f map with Var(y) -> y | _ -> assert false) 
+    with _ -> f
 let rec subst_expr map = function
     | Skip -> Skip
     | Let(x,v,e) -> Let(x, subst_val map v, subst_expr (M.remove x map) e)
     | LetNonDet(x,e) -> LetNonDet(x, subst_expr (M.remove x map) e)
-    | Call(f,vs) -> Call(f, List.map (subst_val map) vs)
+    | Call(f,vs) -> Call(substf map f, List.map (subst_val map) vs)
     | Choice(e1,e2) -> Choice(subst_expr map e1, subst_expr map e2)
     | If(v,e1,e2) -> If(subst_val map v, subst_expr map e1, subst_expr map e2)
+
+
+
+let rec simplify_expr = function
+    | Skip -> Skip
+    | Let(x,v,e) -> Let(x, v, simplify_expr e)
+    | LetNonDet(x,e) -> LetNonDet(x, simplify_expr e)
+    | Call(f,vs) -> Call(f, vs)
+    | Choice(e1,e2) -> 
+        let e1 = simplify_expr e1 in
+        let e2 = simplify_expr e2 in
+        if e1 = Skip then e2
+        else if e2 = Skip then e1
+        else Choice(e1,e2)
+    | If(v,e1,e2) -> If(v, simplify_expr e1, simplify_expr e2)
+let rec simplify_fundef (x,ys,e) = (x, ys, simplify_expr e)
+let rec simplify_prog (fundefs,e) = (List.map simplify_fundef fundefs, simplify_expr e)
