@@ -35,7 +35,7 @@ let rec alpha_proc map = function
         let yts' = List.map (fun (y,t) -> (new_var y, t)) yts in
         RIn(x', yts', alpha_proc (M.add_list (List.map2 (fun (y,_) (y',_) -> (y,y')) yts yts') map) p)
     | Out(x,vs,p) -> Out(alpha_var map x, List.map (alpha_val map) vs, alpha_proc map p)
-    | Par(p1,p2) -> Par(alpha_proc map p1, alpha_proc map p2)
+    | Par(ps) -> Par(List.map (alpha_proc map) ps)
     | If(v,p1,p2) -> If(alpha_val map v, alpha_proc map p1, alpha_proc map p2)
 
 let alphaconv p = 

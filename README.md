@@ -12,3 +12,5 @@ TODO
 * MoCHiとの連携
 * nested inputの制約, non-replicated inputの扱い
 * 実験
+
+* fold_left vs. fold_right

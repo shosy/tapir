@@ -15,7 +15,8 @@ let file filename =
     (* Format.pp_print_string (Format.formatter_of_out_channel logchan) "****** alpha conversion ******\n";  *)
     output_string logchan "****** alpha conversion ******\n"; 
     PiSyntax.print_proc logchan alpha_proc;
-    let simpletyped_proc = SimpleTyping.typing alpha_proc in
+    let norm_proc = Normalize.normalize parsed_proc in
+    let simpletyped_proc = SimpleTyping.typing norm_proc in
     (* Format.pp_print_string (Format.formatter_of_out_channel logchan) "****** simple type ******\n";  *)
     output_string logchan "\n****** simple type ******\n"; 
     PiSyntax.print_proc ~pp_print_t:SimpleType.pp_print_t logchan simpletyped_proc;

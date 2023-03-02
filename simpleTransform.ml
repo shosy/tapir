@@ -54,10 +54,13 @@ let rec trans bienv chenv = function
             let vs' = List.filter (fun v -> is_bool_int_or_chstar (type_of bienv chenv v)) vs in
             let (fundefs,e) = trans bienv chenv p in
             (fundefs, Choice(Call(function_name t, vs), e))  (* 臨時 *)
-    | Par(p1,p2) -> 
-        let (fundefs1,e1) = trans bienv chenv p1 in
-        let (fundefs2,e2) = trans bienv chenv p2 in
-        (fundefs1 + fundefs2, Choice(e1, e2))
+    | Par(ps) ->
+        List.fold_left 
+            (fun (fundefs_ret,e_ret) p -> 
+                let (fundefs,e) = trans bienv chenv p in
+                (fundefs_ret + fundefs, Choice(e_ret, e)))
+            ([], Skip)
+            ps
     | If(v,p1,p2) -> 
         let (fundefs1,e1) = trans bienv chenv p1 in
         let (fundefs2,e2) = trans bienv chenv p2 in

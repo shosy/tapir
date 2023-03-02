@@ -7,6 +7,7 @@ val add : 'a -> 'a t -> 'a t
 val remove : 'a -> 'a t -> 'a t
 val union : 'a t -> 'a t -> 'a t
 val diff : 'a t -> 'a t -> 'a t
+val remove_list : 'a list -> 'a t -> 'a t
 val of_list : 'a list -> 'a t
 val to_list : 'a t -> 'a list
 val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b t -> 'a

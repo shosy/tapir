@@ -16,7 +16,7 @@ type 'a proc =
     | In of string * (string * 'a) list * 'a proc
     | RIn of string * (string * 'a) list * 'a proc
     | Out of string * value list * 'a proc
-    | Par of 'a proc * 'a proc
+    | Par of 'a proc list
     | If of value * 'a proc * 'a proc
 
 
@@ -167,9 +167,10 @@ let rec pr_proc ?pp_print_t prec ppf =
         fprintf ppf "@[%s!%a@]" x (pp_print_list pp_print_val) vs
     | Out(x,vs,p) -> 
         fprintf ppf "@[%s!%a.@ %a@]" x (pp_print_list pp_print_val) vs (pr_proc prec_io) p
-    | Par(p1,p2) -> 
+    | Par(ps) -> 
+        (* 優先順位を確認 *)
         if prec > prec_par then pp_print_string ppf "(";
-        fprintf ppf "@[%a@ | %a@]" (pr_proc prec_par) p1 (pr_proc prec_par) p2;
+        fprintf ppf "@[%a@]" (pp_print_list ~left:"" ~right:"" ~delimiter:" | " (pr_proc prec_par)) ps;
         if prec > prec_par then pp_print_string ppf ")"
     | If(v,p1,p2) -> 
         if prec > prec_if then pp_print_string ppf "(";
@@ -215,5 +216,20 @@ let rec subst_proc map = function
     | In(x,yts,p) -> In(subst_var map x, yts, subst_proc (M.remove_list (List.map fst yts) map) p)
     | RIn(x,yts,p) -> RIn(subst_var map x, yts, subst_proc (M.remove_list (List.map fst yts) map) p)
     | Out(x,vs,p) -> Out(subst_var map x, List.map (subst_val map) vs, subst_proc map p)
-    | Par(p1,p2) -> Par(subst_proc map p1, subst_proc map p2)
+    | Par(ps) -> Par(List.map (subst_proc map) ps)
     | If(v,p1,p2) -> If(subst_val map v, subst_proc map p1, subst_proc map p2)
+
+
+let rec fv_val = function
+    | Var(x) -> S.singleton x
+    | Bool(_) | Int(_) -> S.empty
+    | Op(_,vs) -> List.fold_left (fun set v -> S.union set (fv_val v)) S.empty vs
+
+let rec fv_proc = function
+    | Nil -> S.empty
+    | Nu(x,t,p) -> S.remove x (fv_proc p)
+    | In(x,yts,p) -> S.add x (S.remove_list (List.map fst yts) (fv_proc p))
+    | RIn(x,yts,p) -> S.add x (S.remove_list (List.map fst yts) (fv_proc p))
+    | Out(x,vs,p) -> S.union (S.add x (List.fold_left (fun set v -> S.union set (fv_val v)) S.empty vs)) (fv_proc p)
+    | Par(ps) -> List.fold_left (fun set p -> S.union set (fv_proc p)) S.empty ps
+    | If(v,p1,p2) -> S.union (S.union (fv_val v) (fv_proc p1)) (fv_proc p2)

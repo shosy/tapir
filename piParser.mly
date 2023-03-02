@@ -74,7 +74,7 @@ proc:
 | IDENT OUTPUT value_pattern 
     { Out($1, $3, Nil) }
 | proc PAR proc
-    { Par($1, $3) } 
+    { Par([$1; $3]) } 
 | IF value THEN proc ELSE proc
     { If($2, $4, $6) }
 | LPAREN proc RPAREN
@@ -93,7 +93,7 @@ rev_ident_list:
   IDENT
     { [$1] }
 | rev_ident_list COMMA IDENT
-    { if List.mem $3 $1 then failwith ("Variable "^$3^" is bound several times in this matching");
+    { if List.mem $3 $1 then failwith ("Variable "^$3^" is bound several times in this matching");  (* y,y,z,zのとき良くない *)
       $3 :: $1 }
 ;
 

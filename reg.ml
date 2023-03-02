@@ -31,7 +31,7 @@ let rec newproc tyenv = function
         let yts' = List.map (fun (y,t) -> (y, newty t)) yts in
         RIn(x, yts', newproc (M.add_list yts' tyenv) p)
     | Out(x,vs,p) -> Out(x, vs, newproc tyenv p)
-    | Par(p1,p2) -> Par(newproc tyenv p1, newproc tyenv p2)
+    | Par(ps) -> Par(List.map (newproc tyenv) ps)
     | If(v,p1,p2) -> If(v, newproc tyenv p1, newproc tyenv p2)
 
 
@@ -73,7 +73,7 @@ let rec inf tyenv = function
             ) ts' vs
         | _ -> assert false);
         Out(x, vs, inf tyenv p)
-    | Par(p1,p2) -> Par(inf tyenv p1, inf tyenv p2)
+    | Par(ps) -> Par(List.map (inf tyenv) ps)
     | If(v,p1,p2) -> If(v, inf tyenv p1, inf tyenv p2)
 
 
@@ -91,7 +91,7 @@ let rec substreg reg1 reg2 = function
     | In(x,yts,p) -> In(x, List.map (fun (y,t) -> (y, substregty reg1 reg2 t)) yts, substreg reg1 reg2 p)
     | RIn(x,yts,p) -> RIn(x, List.map (fun (y,t) -> (y, substregty reg1 reg2 t)) yts, substreg reg1 reg2 p)
     | Out(x,vs,p) -> Out(x, vs, substreg reg1 reg2 p)
-    | Par(p1,p2) -> Par(substreg reg1 reg2 p1, substreg reg1 reg2 p2)
+    | Par(ps) -> Par(List.map (substreg reg1 reg2) ps)
     | If(v,p1,p2) -> If(v, substreg reg1 reg2 p1, substreg reg1 reg2 p2)
 
 
@@ -120,7 +120,7 @@ let rec starp = function
     | In(x,yts,p) -> In(x, List.map (fun (y,t) -> (y, starty t)) yts, starp p)
     | RIn(x,yts,p) -> RIn(x, List.map (fun (y,t) -> (y, starty t)) yts, starp p)
     | Out(x,vs,p) -> Out(x, vs, starp p)
-    | Par(p1,p2) -> Par(starp p1, starp p2)
+    | Par(ps) -> Par(List.map starp ps)
     | If(v,p1,p2) -> If(v, starp p1, starp p2)
 
 let infer proc = 

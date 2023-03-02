@@ -16,7 +16,7 @@ type 'a proc =
     | In of string * (string * 'a) list * 'a proc
     | RIn of string * (string * 'a) list * 'a proc
     | Out of string * value list * 'a proc
-    | Par of 'a proc * 'a proc
+    | Par of 'a proc list
     | If of value * 'a proc * 'a proc
 
 (** pretty-print **)
@@ -28,3 +28,6 @@ val print_proc : ?pp_print_t:(Format.formatter -> 'a -> unit) -> out_channel -> 
 
 val subst_val : (string, value) M.t -> value -> value
 val subst_proc : (string, value) M.t -> 'a proc -> 'a proc
+
+val fv_val : value -> string S.t
+val fv_proc : 'a proc -> string S.t

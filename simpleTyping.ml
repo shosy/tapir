@@ -88,7 +88,7 @@ let rec infer_proc env = function
     | Out(x,vs,p) ->
         unify_t (infer_val env (Var(x))) (TCh(List.map (infer_val env) vs, RVar(ref None)));
         Out(x, vs, infer_proc env p)
-    | Par(p1,p2) -> Par(infer_proc env p1, infer_proc env p2)
+    | Par(ps) -> Par(List.map (infer_proc env) ps)
     | If(v,p1,p2) ->
         unify_t (infer_val env v) TBool;
         If(v, infer_proc env p1, infer_proc env p2)
@@ -137,7 +137,7 @@ let rec deref_proc = function
     | In(x,yts,p) -> In(x, List.map (fun (y,t) -> (y, extract_t (deref_t t))) yts, deref_proc p)
     | RIn(x,yts,p) -> RIn(x, List.map (fun (y,t) -> (y, extract_t (deref_t t))) yts, deref_proc p)
     | Out(x,vs,p) -> Out(x, vs, deref_proc p)
-    | Par(p1,p2) -> Par(deref_proc p1, deref_proc p2)
+    | Par(ps) -> Par(List.map deref_proc ps)
     | If(v,p1,p2) -> If(v, deref_proc p1, deref_proc p2)
 
 
