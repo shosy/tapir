@@ -62,9 +62,13 @@ proc:
 | NU IDENT IN proc
     { Nu($2, inittype, $4) }
 | IDENT INPUT ident_pattern PERIOD proc
-    { In($1, List.map addtype $3, $5) }
+    { In($1, List.map addtype $3, $5, Nil) }
 | IDENT INPUT ident_pattern
-    { In($1, List.map addtype $3, Nil) }
+    { In($1, List.map addtype $3, Nil, Nil) }
+| IDENT INPUT AST ident_pattern PERIOD proc
+    { In($1, List.map addtype $4, Nil, $6) }
+| IDENT INPUT AST ident_pattern
+    { In($1, List.map addtype $4, Nil, Nil) }
 | AST IDENT INPUT ident_pattern PERIOD proc
     { RIn($2, List.map addtype $4, $6) }
 | AST IDENT INPUT ident_pattern

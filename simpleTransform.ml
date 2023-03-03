@@ -35,15 +35,22 @@ let empty_chenv (chenv : (string, SimpleType.t) M.t) =
 let rec trans bienv chenv = function
     | Nil -> (empty_chenv chenv, Skip)
     | Nu(x,t,p) -> trans bienv (M.add x t chenv) p
-    | In(_,bindings,p) ->
+    | In(_,bindings,p,Nil) ->
         let (yts,zts) = List.partition (fun (_,t) -> is_bool_or_int t) bindings in
         let (fundefs,e) = trans (M.add_list yts bienv) (M.add_list zts chenv) p in 
         (fundefs, List.fold_right (fun (y,_) e -> LetNonDet(y, e)) yts e)
+    | In(x,bindings,Nil,p)
     | RIn(x,bindings,p) -> 
         let t = type_of bienv chenv (Var(x)) in
         let (yts,zts) = List.partition (fun (_,t) -> is_bool_int_or_chstar t) bindings in
         let (fundefs,e) = trans (M.add_list yts bienv) (M.add_list zts chenv) p in
         ([(function_name t, List.map fst yts, e)] + fundefs, Skip)
+    | In(x,bindings,p1,p2) ->
+        let t = type_of bienv chenv (Var(x)) in
+        let (yts,zts) = List.partition (fun (_,t) -> is_bool_or_int t) bindings in
+        let (fundefs1,e1) = trans (M.add_list yts bienv) (M.add_list zts chenv) p1 in
+        let (fundefs2,e2) = trans (M.add_list yts bienv) (M.add_list zts chenv) p2 in
+        ([(function_name t, List.map fst yts, e2)] + fundefs1 + fundefs2, List.fold_right (fun (y,_) e -> LetNonDet(y, e)) yts e1)
     | Out(x,vs,p) -> 
         let t = type_of bienv chenv (Var(x)) in
         if is_bool_int_or_chstar t then

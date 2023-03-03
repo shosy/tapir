@@ -1,0 +1,6 @@
+/*** A sample program for termination analysis
+ *** The program was taken from Deng and Sangiorgi, "Ensuring Termination by Typability," Section 5 
+ ***/
+
+a!() | b!() | *a?().b?*().a!()
+| *b?().b?().b?().(b!() | b!())

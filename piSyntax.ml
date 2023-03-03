@@ -13,7 +13,7 @@ type value =
 type 'a proc =
     | Nil
     | Nu of string * 'a * 'a proc
-    | In of string * (string * 'a) list * 'a proc
+    | In of string * (string * 'a) list * 'a proc * 'a proc
     | RIn of string * (string * 'a) list * 'a proc
     | Out of string * value list * 'a proc
     | Par of 'a proc list
@@ -147,14 +147,14 @@ let rec pr_proc ?pp_print_t prec ppf =
         | None             -> fprintf ppf "@[new %s in@ %a@]"                                             x    (pr_proc prec_nu) p
         | Some(pp_print_t) -> fprintf ppf "@[new %a in@ %a@]" (pp_print_pair pp_print_string pp_print_t) (x,t) (pr_proc prec_nu) p);
         if prec > prec_nu then pp_print_string ppf ")"
-    | In(x,yts,Nil) -> 
+    | In(x,yts,Nil,Nil) -> 
         (match pp_print_t with
         | None             -> fprintf ppf "@[%s?%a@]" x (pp_print_list                pp_print_string            ) (List.map fst yts) 
         | Some(pp_print_t) -> fprintf ppf "@[%s?%a@]" x (pp_print_list (pp_print_pair pp_print_string pp_print_t))               yts )
-    | In(x,yts,p) -> 
+    | In(x,yts,p1,p2) -> 
         (match pp_print_t with
-        | None             -> fprintf ppf "@[%s?%a.@ %a@]" x (pp_print_list                pp_print_string            ) (List.map fst yts) (pr_proc prec_io) p
-        | Some(pp_print_t) -> fprintf ppf "@[%s?%a.@ %a@]" x (pp_print_list (pp_print_pair pp_print_string pp_print_t))               yts  (pr_proc prec_io) p)
+        | None             -> fprintf ppf "@[%s?%a.@ %a@]" x (pp_print_list                pp_print_string            ) (List.map fst yts) (pr_proc prec_io) (Par([p1;p2]))
+        | Some(pp_print_t) -> fprintf ppf "@[%s?%a.@ %a@]" x (pp_print_list (pp_print_pair pp_print_string pp_print_t))               yts  (pr_proc prec_io) (Par([p1;p2])))
     | RIn(x,yts,Nil) -> 
         (match pp_print_t with
         | None             -> fprintf ppf "@[*%s?%a@]" x (pp_print_list                pp_print_string            ) (List.map fst yts) 
@@ -213,7 +213,7 @@ let subst_var map x =
 let rec subst_proc map = function
     | Nil -> Nil
     | Nu(x,t,p) -> Nu(x, t, subst_proc (M.remove x map) p)
-    | In(x,yts,p) -> In(subst_var map x, yts, subst_proc (M.remove_list (List.map fst yts) map) p)
+    | In(x,yts,p1,p2) -> In(subst_var map x, yts, subst_proc (M.remove_list (List.map fst yts) map) p1, subst_proc (M.remove_list (List.map fst yts) map) p2)
     | RIn(x,yts,p) -> RIn(subst_var map x, yts, subst_proc (M.remove_list (List.map fst yts) map) p)
     | Out(x,vs,p) -> Out(subst_var map x, List.map (subst_val map) vs, subst_proc map p)
     | Par(ps) -> Par(List.map (subst_proc map) ps)
@@ -228,7 +228,7 @@ let rec fv_val = function
 let rec fv_proc = function
     | Nil -> S.empty
     | Nu(x,t,p) -> S.remove x (fv_proc p)
-    | In(x,yts,p) -> S.add x (S.remove_list (List.map fst yts) (fv_proc p))
+    | In(x,yts,p1,p2) -> S.add x (S.remove_list (List.map fst yts) (fv_proc (Par([p1;p2]))))
     | RIn(x,yts,p) -> S.add x (S.remove_list (List.map fst yts) (fv_proc p))
     | Out(x,vs,p) -> S.union (S.add x (List.fold_left (fun set v -> S.union set (fv_val v)) S.empty vs)) (fv_proc p)
     | Par(ps) -> List.fold_left (fun set p -> S.union set (fv_proc p)) S.empty ps

@@ -5,7 +5,7 @@ let rec normalize = function
   | Nu(x,t,p) -> 
       let p = normalize p in
       if S.mem x (fv_proc p) then Nu(x,t,p) else p
-  | In(x,yts,p) -> In(x, yts, normalize p)
+  | In(x,yts,p1,p2) -> In(x, yts, normalize p1, normalize p2)
   | RIn(x,yts,p) -> RIn(x, yts, normalize p)
   | Out(x,vs,p) -> Out(x, vs, normalize p)
   | Par(ps) -> 

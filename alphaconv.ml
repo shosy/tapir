@@ -26,10 +26,10 @@ let rec alpha_proc map = function
     | Nu(x,t,p) -> 
         let x' = new_var x in
         Nu(x', t, alpha_proc (M.add x x' map) p)
-    | In(x,yts,p) ->
+    | In(x,yts,p1,p2) ->
         let x' = alpha_var map x in
         let yts' = List.map (fun (y,t) -> (new_var y, t)) yts in
-        In(x', yts', alpha_proc (M.add_list (List.map2 (fun (y,_) (y',_) -> (y,y')) yts yts') map) p)
+        In(x', yts', alpha_proc (M.add_list (List.map2 (fun (y,_) (y',_) -> (y,y')) yts yts') map) p1, alpha_proc (M.add_list (List.map2 (fun (y,_) (y',_) -> (y,y')) yts yts') map) p2)
     | RIn(x,yts,p) ->
         let x' = alpha_var map x in
         let yts' = List.map (fun (y,t) -> (new_var y, t)) yts in

@@ -13,7 +13,7 @@ type value =
 type 'a proc =
     | Nil
     | Nu of string * 'a * 'a proc
-    | In of string * (string * 'a) list * 'a proc
+    | In of string * (string * 'a) list * 'a proc * 'a proc
     | RIn of string * (string * 'a) list * 'a proc
     | Out of string * value list * 'a proc
     | Par of 'a proc list

@@ -77,10 +77,10 @@ let rec infer_proc env = function
     | Nu(x,_,p) -> 
         let t' = TVar(ref None) in
         Nu(x, t', infer_proc (M.add x t' env) p)
-    | In(x,yts,p) -> 
+    | In(x,yts,p1,p2) -> 
         let yts' = List.map (fun (y,_) -> (y, TVar(ref None))) yts in
         unify_t (infer_val env (Var(x))) (TCh(List.map snd yts', RVar(ref None)));
-        In(x, yts', infer_proc (M.add_list yts' env) p)
+        In(x, yts', infer_proc (M.add_list yts' env) p1, infer_proc (M.add_list yts' env) p2)
     | RIn(x,yts,p) -> 
         let yts' = List.map (fun (y,_) -> (y, TVar(ref None))) yts in
         unify_t (infer_val env (Var(x))) (TCh(List.map snd yts', RVar(ref None)));
@@ -134,7 +134,7 @@ let rec deref_proc = function
         let t' = extract_t (deref_t t) in
         (match t' with SimpleType.SCh(_) -> () | _ -> failwith "new int");  (* x : chan-type *)
         Nu(x, t', deref_proc p)
-    | In(x,yts,p) -> In(x, List.map (fun (y,t) -> (y, extract_t (deref_t t))) yts, deref_proc p)
+    | In(x,yts,p1,p2) -> In(x, List.map (fun (y,t) -> (y, extract_t (deref_t t))) yts, deref_proc p1, deref_proc p2)
     | RIn(x,yts,p) -> RIn(x, List.map (fun (y,t) -> (y, extract_t (deref_t t))) yts, deref_proc p)
     | Out(x,vs,p) -> Out(x, vs, deref_proc p)
     | Par(ps) -> Par(List.map deref_proc ps)
